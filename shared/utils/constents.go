@@ -2,11 +2,13 @@ package utils
 
 import (
 	"strings"
-
-	"github.com/gin-gonic/gin"
 )
 
-type Object gin.H
+type APIError struct {
+	Message    any
+	StatusCode int
+}
+
 
 func GetValidExtentions(initialValues string, validValues ...string) []string {
 	extentions := strings.Split(initialValues, ",")
