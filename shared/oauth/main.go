@@ -1,6 +1,8 @@
 package oauth
 
 import (
+	"fmt"
+
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 )
@@ -16,6 +18,7 @@ type Providers map[string]Provider
 var Instance Providers
 
 func Init() {
+	fmt.Println(envs.redirectURL)
 	Instance = Providers{
 		"google": {
 			Config: &oauth2.Config{
@@ -31,6 +34,7 @@ func Init() {
 }
 
 func IsSupportedProvider(provider string) bool {
+	fmt.Println(provider)
 	_, exists := Instance[provider]
 	return exists
 }

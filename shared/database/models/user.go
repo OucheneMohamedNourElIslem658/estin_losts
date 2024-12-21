@@ -10,7 +10,6 @@ type User struct {
 	Email         string `gorm:"unique;not null" json:"email"`
 	FullName      string `gorm:"not null" json:"full_name"`
 	ImageURL      string `gorm:"unique;not null" json:"image_url"`
-	EmailVerified bool   `json:"email_verified"`
 	Disabled      bool   `json:"disabled"`
 	IsAdmin       bool   `json:"is_admin"`
 	Posts         []Post `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"posts,omitempty"`

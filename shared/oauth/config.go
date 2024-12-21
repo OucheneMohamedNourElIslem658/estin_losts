@@ -23,6 +23,6 @@ func initAPI() config {
 	return config{
 		googleClientID:     os.Getenv("GOOGLE_CLIENT_ID"),
 		googleClientSecret: os.Getenv("GOOGLE_CLIENT_SECRET"),
-		redirectURL:        os.Getenv("HOST") + "/users/auth/oauth/google/callback",
+		redirectURL:        os.Getenv("HOST") + "/api/v1/users/auth/oauth/google/callback",
 	}
 }
