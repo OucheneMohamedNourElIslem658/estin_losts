@@ -103,19 +103,18 @@ func (fs *FileStorage) UploadFile(fileHeader *multipart.FileHeader, folder strin
 		file,
 		fileHeader.Size,
 		minio.PutObjectOptions{
-			Progress: progressReader,
+			Progress:    progressReader,
 			ContentType: fileHeader.Header.Get("Content-Type"),
-	    },
+		},
 	)
-
-	fmt.Println(objectName)
 
 	url := fmt.Sprintf("%s/%s/%s", envs.url, envs.bucketName, objectName)
 
 	image := &models.Image{
-		Name:          fileHeader.Filename,
-		FileStorageID: objectName,
-		URL:           url,
+		ID:                id,
+		Name:              fileHeader.Filename,
+		FileStorageFolder: folder,
+		URL:               url,
 	}
 
 	return image, nil
@@ -139,7 +138,7 @@ func (fs *FileStorage) UploadFiles(filesHeaders []*multipart.FileHeader, folder 
 
 		if err != nil {
 			for _, uploadedFile := range uploadedFiles {
-				fs.DeleteFile(uploadedFile.FileStorageID)
+				fs.DeleteImage(uploadedFile)
 			}
 			return nil, err
 		}
@@ -150,11 +149,12 @@ func (fs *FileStorage) UploadFiles(filesHeaders []*multipart.FileHeader, folder 
 	return uploadedFiles, nil
 }
 
-func (fs *FileStorage) DeleteFile(fileStorageID string) error {
+func (fs *FileStorage) DeleteImage(image models.Image) error {
+	objectName := fmt.Sprintf("%s/%s", image.FileStorageFolder, image.ID)
 	err := fs.client.RemoveObject(
 		context.Background(),
 		fs.bucketName,
-		fileStorageID,
+		objectName,
 		minio.RemoveObjectOptions{},
 	)
 	return err

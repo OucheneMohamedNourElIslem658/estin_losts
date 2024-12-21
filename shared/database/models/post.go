@@ -38,12 +38,12 @@ func (p *Post) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 type Image struct {
-	ID            string `gorm:"primaryKey" json:"id"`
-	Name          string `gorm:"not null" json:"name"`
-	URL           string `gorm:"unique,not null" json:"url"`
-	FileStorageID string `gorm:"unique,not null" json:"file_storage_id"`
-	PostID        string `json:"post_id"`
-	Post          *Post  `json:"post,omitempty"`
+	ID                string `gorm:"primaryKey" json:"id"`
+	Name              string `gorm:"not null" json:"name"`
+	URL               string `gorm:"unique,not null" json:"url"`
+	FileStorageFolder string `json:"file_storage_folder"`
+	PostID            string `json:"post_id"`
+	Post              *Post  `json:"post,omitempty"`
 }
 
 func (i *Image) BeforeCreate(tx *gorm.DB) (err error) {
