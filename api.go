@@ -1,7 +1,8 @@
 package main
 
 import (
-	"github.com/OucheneMohamedNourElIslem658/estin_losts/services/users/auth/routers"
+	postsRouters "github.com/OucheneMohamedNourElIslem658/estin_losts/services/posts/routers"
+	usersRouters "github.com/OucheneMohamedNourElIslem658/estin_losts/services/users/routers"
 	"github.com/gin-gonic/gin"
 )
 
@@ -25,14 +26,18 @@ func (s *Server) Start() {
 	v1 := router.Group("/api/v1")
 
 	usersRouter := v1.Group("/users")
-	
+
 	subRoute := usersRouter.Group("/auth")
-	authRouter := routers.NewAuthRouter(subRoute)
+	authRouter := usersRouters.NewAuthRouter(subRoute)
 	authRouter.RegisterRoutes()
 
 	subRoute = usersRouter.Group("/profiles")
-	profilesRouter := routers.NewProfilesRouter(subRoute)
+	profilesRouter := usersRouters.NewProfilesRouter(subRoute)
 	profilesRouter.RegisterRoutes()
+
+	subRoute = v1.Group("/posts")
+	postsRouter := postsRouters.NewPostsRouter(subRoute)
+	postsRouter.RegisterRoutes()
 
 	router.Run(s.address)
 }

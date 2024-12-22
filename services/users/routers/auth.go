@@ -1,7 +1,7 @@
 package routers
 
 import (
-	"github.com/OucheneMohamedNourElIslem658/estin_losts/services/users/auth/controllers"
+	"github.com/OucheneMohamedNourElIslem658/estin_losts/services/users/controllers"
 	"github.com/gin-gonic/gin"
 )
 

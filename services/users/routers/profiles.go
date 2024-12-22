@@ -1,7 +1,7 @@
 package routers
 
 import (
-	"github.com/OucheneMohamedNourElIslem658/estin_losts/services/users/auth/controllers"
+	"github.com/OucheneMohamedNourElIslem658/estin_losts/services/users/controllers"
 	"github.com/OucheneMohamedNourElIslem658/estin_losts/shared/middlewares"
 	"github.com/gin-gonic/gin"
 )
@@ -29,5 +29,4 @@ func (pr *ProfilesRouter) RegisterRoutes() {
 	authorizationWithUserCheck := authMiddlewares.AuthorizationWithUserCheck()
 
 	router.GET("/profile", authorization, authorizationWithUserCheck, profilesController.GetProfile)
-	router.PUT("/profile", authorization, authorizationWithUserCheck, profilesController.UpdateProfile)
 }

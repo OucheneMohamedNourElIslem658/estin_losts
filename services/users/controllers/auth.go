@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/OucheneMohamedNourElIslem658/estin_losts/services/users/auth/repositories"
+	"github.com/OucheneMohamedNourElIslem658/estin_losts/services/users/repositories"
 	"github.com/OucheneMohamedNourElIslem658/estin_losts/shared/utils"
 	"github.com/gin-gonic/gin"
 	"golang.org/x/oauth2"

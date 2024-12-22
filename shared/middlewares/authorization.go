@@ -1,10 +1,9 @@
 package middlewares
 
 import (
-	"fmt"
 	"net/http"
 
-	"github.com/OucheneMohamedNourElIslem658/estin_losts/services/users/auth/repositories"
+	"github.com/OucheneMohamedNourElIslem658/estin_losts/services/users/repositories"
 	"github.com/OucheneMohamedNourElIslem658/estin_losts/shared/utils"
 	"github.com/gin-gonic/gin"
 )
@@ -29,7 +28,6 @@ func (am *AuthorizationMiddlewares) Authorization() gin.HandlerFunc {
 			if idToken != "" {
 				claims, _, err := utils.VerifyIDToken(idToken)
 
-				fmt.Println(err)
 				if err != nil {
 					refreshToken := ctx.GetHeader("refresh_token")
 
