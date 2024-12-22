@@ -34,9 +34,8 @@ func ValidationErrorResponse(err error, dto any) gin.H {
 			case "max":
 				errors[jsonTag] = fmt.Sprintf("max: %s", vErr.Param())
 			case "required_with":
-				requiredWith := vErr.Param()
-				errors[jsonTag] = fmt.Sprintf("required with: %s", requiredWith)
-
+				paramTag := getJSONTag(dto, vErr.Param())
+				errors[jsonTag] = fmt.Sprintf("required with: %s", paramTag)
 			default:
 			}
 		}

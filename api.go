@@ -24,7 +24,7 @@ func (s *Server) Start() {
 	})
 
 	v1 := router.Group("/api/v1")
-
+	
 	usersRouter := v1.Group("/users")
 
 	subRoute := usersRouter.Group("/auth")

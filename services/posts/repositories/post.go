@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"fmt"
 	"mime/multipart"
 	"net/http"
 	"strings"
@@ -27,20 +28,20 @@ func NewPostRepository() *PostRepository {
 type CreatePostDTO struct {
 	Title             string                  `form:"title" binding:"required"`
 	Description       string                  `form:"description"`
-	LocationLatitude  *float64                `form:"location_latitude" binding:"omitempty,min=-90,max=90,required_with=LocationLongitude"`
-	LocationLongitude *float64                `form:"location_longitude" binding:"omitempty,min=-180,max=180,required_with=LocationLatitude"`
+	LocationLatitude  *float64                `form:"location_latitude" binding:"required_with=LocationLongitude,min=-90,max=90"`
+	LocationLongitude *float64                `form:"location_longitude" binding:"required_with=LocationLatitude,min=-180,max=180"`
 	Type              string                  `form:"type" binding:"required,oneof=lost found"`
 	Images            []*multipart.FileHeader `form:"images" binding:"omitempty,max=3,dive,image"`
 }
 
-func (pr *PostRepository) CreatePost(userID string, dto CreatePostDTO) (post *models.Post, apiError *utils.APIError) {
+func (pr *PostRepository) CreatePost(userID string, dto CreatePostDTO) (apiError *utils.APIError) {
 	database := pr.database
 
 	filestorage := filestorage.Instance
 
 	images, err := filestorage.UploadFiles(dto.Images, "posts", nil)
 	if err != nil {
-		return nil, &utils.APIError{
+		return &utils.APIError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
 		}
@@ -58,17 +59,17 @@ func (pr *PostRepository) CreatePost(userID string, dto CreatePostDTO) (post *mo
 
 	err = database.Create(&postToCreate).Error
 	if err != nil {
-		return nil, &utils.APIError{
+		return &utils.APIError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
 		}
 	}
 
-	return &postToCreate, nil
+	return nil
 }
 
 type UpdatePostDTO struct {
-	Type             string `form:"type" binding:"omitempty,oneof=lost found,default=lost"`
+	Type             string `form:"type" binding:"omitempty,oneof=lost found"`
 	HasBeenFound     *bool  `json:"has_been_found"`
 	HasBeenDelivered *bool  `json:"has_been_delivered"`
 }
@@ -98,10 +99,20 @@ func (pr *PostRepository) UpdatePost(userID, postID string, dto UpdatePostDTO) (
 
 	if dto.HasBeenFound != nil && post.Type == models.Lost {
 		post.HasBeenFound = *dto.HasBeenFound
+	} else if dto.HasBeenFound != nil {
+		return &utils.APIError{
+			StatusCode: http.StatusConflict,
+			Message:    "post is found",
+		}
 	}
 
 	if dto.HasBeenDelivered != nil && post.Type == models.Found {
 		post.HasBeenDelivered = *dto.HasBeenDelivered
+	} else if dto.HasBeenDelivered != nil {
+		return &utils.APIError{
+			StatusCode: http.StatusConflict,
+			Message:    "post is lost",
+		}
 	}
 
 	err = database.Save(&post).Error
@@ -165,23 +176,31 @@ const (
 )
 
 type GetPostsDTO struct {
-	Content                         string                 `form:"content"`
-	Type                            string                 `form:"type"`
-	UserID                          string                 `form:"user_id"`
-	ClaimedOrFoundByUserID          ClaimedOrFoundByUserID `form:"claimed_or_found_by_user_id" binding:"omitempty,required_with=user_id,onof=claimed found"`
-	LocalctionLatitudeApproximation *float64               `form:"location_latitude_approximation" binding:"omitempty,min=-90,max=90,required_with=LocationLongitudeApproximation"`
-	LocationLongitudeApproximation  *float64               `form:"location_longitude_approximation" binding:"omitempty,min=-180,max=180,required_with=LocationLatitudeApproximation"`
-	AppendWith                      string                 `form:"append_with"`
-	HasBeenFound                    *bool                  `form:"has_been_found"`
-	HasBeenDelivered                *bool                  `form:"has_been_delivered"`
-	PageSize                        int                    `form:"page_size" binding:"min=1, default=10"`
-	PageNumber                      int                    `form:"page_number" binding:"min=1, default=1"`
+	Content                string                 `form:"content"`
+	Type                   string                 `form:"type" binding:"omitempty,oneof=lost found"`
+	UserID                 string                 `form:"user_id"`
+	ClaimedOrFoundByUserID ClaimedOrFoundByUserID `form:"claimed_or_found_by_user_id" binding:"omitempty,required_with=user_id,oneof=claimed found"`
+	LocationLatitude       *float64               `form:"location_latitude" binding:"omitempty,required_with=LocationLongitude,min=-90,max=90"`
+	LocationLongitude      *float64               `form:"location_longitude" binding:"omitempty,required_with=LocationLatitude,min=-180,max=180"`
+	AppendWith             string                 `form:"append_with"`
+	HasBeenFound           *bool                  `form:"has_been_found"`
+	HasBeenDelivered       *bool                  `form:"has_been_delivered"`
+	PageSize               int                    `form:"page_size,default=10" binding:"min=1"`
+	PageNumber             int                    `form:"page_number,default=1" binding:"min=1"`
 }
 
-func (pr *PostRepository) GetPosts(filter GetPostsDTO) (posts []models.Post, TotalPagesNumber *uint, apiError *utils.APIError) {
+type PagesData struct {
+	Posts            []models.Post `json:"posts"`
+	TotalPagesNumber uint          `json:"total_pages_number"`
+	PageSize         int           `json:"page_size"`
+	PageNumber       int           `json:"page_number"`
+	PostsCount       int           `json:"posts_count"`
+}
+
+func (pr *PostRepository) GetPosts(filter GetPostsDTO) (posts *PagesData, apiError *utils.APIError) {
 	database := pr.database
 
-	query := database.Select("posts.*, COUNT(DISTINCT claims.user_id) AS claimers_count, COUNT(DISTINCT founds.user_id) AS founders_count").
+	query := database.Model(&models.Post{}).Select("posts.*, COUNT(DISTINCT claims.user_id) AS claimers_count, COUNT(DISTINCT founds.user_id) AS founders_count").
 		Joins("LEFT JOIN claims ON posts.id = claims.post_id").
 		Joins("LEFT JOIN founds ON posts.id = founds.post_id").
 		Group("posts.id")
@@ -204,17 +223,25 @@ func (pr *PostRepository) GetPosts(filter GetPostsDTO) (posts []models.Post, Tot
 		}
 	}
 
-	if filter.LocalctionLatitudeApproximation != nil && filter.LocationLongitudeApproximation != nil {
-		query.Where("location_latitude BETWEEN ? AND ?", *filter.LocalctionLatitudeApproximation-0.1, *filter.LocalctionLatitudeApproximation+0.1)
-		query.Where("location_longitude BETWEEN ? AND ?", *filter.LocationLongitudeApproximation-0.1, *filter.LocationLongitudeApproximation+0.1)
+	if filter.LocationLatitude != nil && filter.LocationLongitude != nil {
+		query.Where("location_latitude BETWEEN ? AND ?", *filter.LocationLatitude-0.1, *filter.LocationLatitude+0.1)
+		query.Where("location_longitude BETWEEN ? AND ?", *filter.LocationLongitude-0.1, *filter.LocationLongitude+0.1)
+	}
+
+	if filter.HasBeenFound != nil {
+		query.Where("has_been_found = ?", *filter.HasBeenFound)
+	}
+
+	if filter.HasBeenDelivered != nil {
+		query.Where("has_been_delivered = ?", *filter.HasBeenDelivered)
 	}
 
 	if filter.AppendWith != "" {
 		extentions := utils.GetValidExtentions(
 			filter.AppendWith,
 			"user",
-			"calimers",
-			"fonders",
+			"claimers",
+			"founders",
 		)
 		for _, extention := range extentions {
 			query.Preload(extention)
@@ -226,24 +253,35 @@ func (pr *PostRepository) GetPosts(filter GetPostsDTO) (posts []models.Post, Tot
 	var totalPosts int64
 	err := query.Count(&totalPosts).Error
 	if err != nil {
-		return nil, nil, &utils.APIError{
+		return nil, &utils.APIError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
 		}
 	}
 
 	totalPagesNumber := uint(totalPosts) / uint(filter.PageSize)
+	latPagePostsCount := int(totalPosts) % filter.PageSize
+	if latPagePostsCount > 0 {
+		totalPagesNumber++
+	}
 
-	err = query.Limit(filter.PageSize).Offset((filter.PageNumber - 1) * filter.PageSize).Find(&posts).Error
+	var existingPosts []models.Post
+	err = query.Limit(filter.PageSize).Offset((filter.PageNumber - 1) * filter.PageSize).Find(&existingPosts).Error
 
 	if err != nil {
-		return nil, nil, &utils.APIError{
+		return nil, &utils.APIError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
 		}
 	}
 
-	return posts, &totalPagesNumber, nil
+	return &PagesData{
+		TotalPagesNumber: totalPagesNumber,
+		Posts:            existingPosts,
+		PageSize:         filter.PageSize,
+		PageNumber:       filter.PageNumber,
+		PostsCount:       int(totalPosts),
+	}, nil
 }
 
 type GetPostDTO struct {
@@ -253,19 +291,19 @@ type GetPostDTO struct {
 func (pr *PostRepository) GetPost(postID string, filter GetPostDTO) (post *models.Post, apiError *utils.APIError) {
 	database := pr.database
 
-	query := database
-
-	query.Select("posts.*, COUNT(DISTINCT claims.user_id) AS claimers_count, COUNT(DISTINCT founds.user_id) AS founders_count").
+	query := database.
+		Select("posts.*, COUNT(DISTINCT claims.user_id) AS claimers_count, COUNT(DISTINCT founds.user_id) AS founders_count").
 		Joins("LEFT JOIN claims ON posts.id = claims.post_id").
 		Joins("LEFT JOIN founds ON posts.id = founds.post_id").
-		Group("posts.id")
+		Group("posts.id").
+		Where("posts.id = ?", postID)
 
 	if filter.AppendWith != "" {
 		extentions := utils.GetValidExtentions(
 			filter.AppendWith,
 			"user",
-			"calimers",
-			"fonders",
+			"claimers",
+			"founders",
 		)
 		for _, extention := range extentions {
 			query.Preload(extention)
@@ -275,7 +313,7 @@ func (pr *PostRepository) GetPost(postID string, filter GetPostDTO) (post *model
 
 	var postToReturn models.Post
 
-	err := query.Where("id = ?", postID).First(&postToReturn).Error
+	err := query.First(&postToReturn).Error
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, &utils.APIError{
@@ -297,7 +335,15 @@ func (pr *PostRepository) ClaimPost(userID, postID string) (apiError *utils.APIE
 
 	var post models.Post
 
-	err := database.Where("id = ?", postID).First(&post).Error
+	// Query to check if the post is claimed by the user
+	err := database.Select("posts.*, COUNT(claims.post_id) > 0 as claimed_by_user").
+		Joins("LEFT JOIN claims ON posts.id = claims.post_id AND claims.user_id = ?", userID).
+		Group("posts.id").
+		Where("posts.id = ?", postID).
+		First(&post).Error
+	fmt.Println(*post.ClaimedByUser)
+
+	// Error handling for not found and internal errors
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return &utils.APIError{
@@ -308,6 +354,13 @@ func (pr *PostRepository) ClaimPost(userID, postID string) (apiError *utils.APIE
 		return &utils.APIError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
+		}
+	}
+
+	if post.ClaimedByUser != nil && *post.ClaimedByUser {
+		return &utils.APIError{
+			StatusCode: http.StatusConflict,
+			Message:    "you already claimed this post",
 		}
 	}
 
@@ -325,11 +378,16 @@ func (pr *PostRepository) ClaimPost(userID, postID string) (apiError *utils.APIE
 		}
 	}
 
-	err = database.Model(&post).Association("Claimers").Append(&models.User{ID: userID})
+	err = database.Create(&models.Claims{
+		PostID:       postID,
+		UserID:       userID,
+		SeenByPoster: false,
+	}).Error
+
 	if err != nil {
 		return &utils.APIError{
-			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
+			StatusCode: http.StatusInternalServerError,
 		}
 	}
 
@@ -352,6 +410,13 @@ func (pr *PostRepository) UnclaimPost(userID, postID string) (apiError *utils.AP
 		return &utils.APIError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
+		}
+	}
+
+	if post.UserID == userID {
+		return &utils.APIError{
+			StatusCode: http.StatusConflict,
+			Message:    "you can't unclaim your own post",
 		}
 	}
 

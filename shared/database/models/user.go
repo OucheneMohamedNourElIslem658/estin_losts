@@ -27,7 +27,7 @@ type Claims struct {
 	UserID       string `gorm:"primaryKey" json:"user_id"`
 	Post         *Post  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"post,omitempty"`
 	User         *User  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user,omitempty"`
-	SeenByPoster bool   `json:"seen_by_poster"`
+	SeenByPoster bool   `gorm:"default:false" json:"seen_by_poster"`
 }
 
 type Founds struct {
@@ -35,5 +35,5 @@ type Founds struct {
 	UserID       string `gorm:"primaryKey" json:"user_id"`
 	Post         *Post  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"post,omitempty"`
 	User         *User  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user,omitempty"`
-	SeenByPoster bool   `json:"seen_by_poster"`
+	SeenByPoster bool   `gorm:"default:false" json:"seen_by_poster"`
 }

@@ -131,7 +131,9 @@ func (fs *FileStorage) UploadFiles(filesHeaders []*multipart.FileHeader, folder 
 
 	for _, fileHeader := range filesHeaders {
 		uploadedFile, err := fs.UploadFile(fileHeader, folder, func(bytesRead, _ int64) {
-			uploadCallback(totalBytesRead+bytesRead, totalBytesToUpload)
+			if uploadCallback != nil {
+				uploadCallback(totalBytesRead+bytesRead, totalBytesToUpload)
+			}
 		})
 
 		totalBytesRead += fileHeader.Size

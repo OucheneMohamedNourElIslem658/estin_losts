@@ -19,6 +19,13 @@ func NewPostsController() *PostsController {
 }
 
 func (pc *PostsController) CreatePost(ctx *gin.Context) {
+	if ctx.ContentType() != "multipart/form-data" {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "content type must be multipart/form-data",
+		})
+		return
+	}
+
 	var dto repositories.CreatePostDTO
 	if err := ctx.ShouldBind(&dto); err != nil {
 		message := utils.ValidationErrorResponse(err, dto)
@@ -28,7 +35,7 @@ func (pc *PostsController) CreatePost(ctx *gin.Context) {
 
 	id := ctx.GetString("id")
 
-	post, apiError := pc.postsRepository.CreatePost(id, dto)
+	apiError := pc.postsRepository.CreatePost(id, dto)
 	if apiError != nil {
 		ctx.JSON(apiError.StatusCode, gin.H{
 			"error": apiError.Message,
@@ -36,7 +43,7 @@ func (pc *PostsController) CreatePost(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusCreated, post)
+	ctx.Status(http.StatusCreated)
 }
 
 func (pc *PostsController) GetPosts(ctx *gin.Context) {
@@ -47,7 +54,7 @@ func (pc *PostsController) GetPosts(ctx *gin.Context) {
 		return
 	}
 
-	posts, totalPagesNumber, apiError := pc.postsRepository.GetPosts(dto)
+	posts, apiError := pc.postsRepository.GetPosts(dto)
 
 	if apiError != nil {
 		ctx.JSON(apiError.StatusCode, gin.H{
@@ -56,10 +63,7 @@ func (pc *PostsController) GetPosts(ctx *gin.Context) {
 		return
 	}
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"total_pages_number": totalPagesNumber,
-		"posts":              posts,
-	})
+	ctx.JSON(http.StatusOK, posts)
 }
 
 func (pc *PostsController) GetPost(ctx *gin.Context) {

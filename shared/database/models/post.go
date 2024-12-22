@@ -23,8 +23,9 @@ type Post struct {
 	LocationLatitude  *float64  `json:"location_latitude"`
 	LocationLongitude *float64  `json:"location_longitude"`
 	Type              PostType  `sql:"type:ENUM('lost', 'found')" gorm:"default:'lost'" json:"type"`
-	HasBeenFound      bool      `json:"has_been_found"`
-	HasBeenDelivered  bool      `json:"has_been_delivered"`
+	HasBeenFound      bool      `gorm:"default:false" json:"has_been_found"`
+	HasBeenDelivered  bool      `gorm:"default:false" json:"has_been_delivered"`
+	ClaimedByUser     *bool     `gorm:"-:migration;->" json:"claimed_by_user,omitempty"`
 	UserID            string    `json:"user_id"`
 	User              *User     `json:"user,omitempty"`
 	Images            []Image   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"images,omitempty"`
