@@ -36,5 +36,5 @@ func (pr *PostsRouter) RegisterRoutes() {
 	router.POST("/:post_id/claim", authorization, authorizationWithUserCheck, postsController.ClaimPost)
 	router.DELETE("/:post_id/unclaim", authorization, authorizationWithUserCheck, postsController.UnclaimPost)
 	router.POST("/:post_id/found", authorization, authorizationWithUserCheck, postsController.FoundPost)
-	router.DELETE("/:post_id/found", authorization, authorizationWithUserCheck, postsController.UnfoundPost)
+	router.DELETE("/:post_id/unfound", authorization, authorizationWithUserCheck, postsController.UnfoundPost)
 }

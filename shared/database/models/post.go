@@ -26,6 +26,7 @@ type Post struct {
 	HasBeenFound      bool      `gorm:"default:false" json:"has_been_found"`
 	HasBeenDelivered  bool      `gorm:"default:false" json:"has_been_delivered"`
 	ClaimedByUser     *bool     `gorm:"-:migration;->" json:"claimed_by_user,omitempty"`
+	FoundByUser       *bool     `gorm:"-:migration;->" json:"found_by_user,omitempty"`
 	UserID            string    `json:"user_id"`
 	User              *User     `json:"user,omitempty"`
 	Images            []Image   `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"images,omitempty"`

@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"fmt"
 	"mime/multipart"
 	"net/http"
 	"strings"
@@ -335,15 +334,12 @@ func (pr *PostRepository) ClaimPost(userID, postID string) (apiError *utils.APIE
 
 	var post models.Post
 
-	// Query to check if the post is claimed by the user
 	err := database.Select("posts.*, COUNT(claims.post_id) > 0 as claimed_by_user").
 		Joins("LEFT JOIN claims ON posts.id = claims.post_id AND claims.user_id = ?", userID).
 		Group("posts.id").
 		Where("posts.id = ?", postID).
 		First(&post).Error
-	fmt.Println(*post.ClaimedByUser)
 
-	// Error handling for not found and internal errors
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return &utils.APIError{
@@ -399,7 +395,12 @@ func (pr *PostRepository) UnclaimPost(userID, postID string) (apiError *utils.AP
 
 	var post models.Post
 
-	err := database.Where("id = ?", postID).First(&post).Error
+	err := database.Select("posts.*, COUNT(claims.post_id) > 0 as claimed_by_user").
+	Joins("LEFT JOIN claims ON posts.id = claims.post_id AND claims.user_id = ?", userID).
+	Group("posts.id").
+	Where("posts.id = ?", postID).
+	First(&post).Error
+
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return &utils.APIError{
@@ -410,6 +411,13 @@ func (pr *PostRepository) UnclaimPost(userID, postID string) (apiError *utils.AP
 		return &utils.APIError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
+		}
+	}
+
+	if post.ClaimedByUser != nil && !*post.ClaimedByUser {
+		return &utils.APIError{
+			StatusCode: http.StatusConflict,
+			Message:    "you didn't claim this post",
 		}
 	}
 
@@ -436,7 +444,13 @@ func (pr *PostRepository) FoundPost(userID, postID string) (apiError *utils.APIE
 
 	var post models.Post
 
-	err := database.Where("id = ?", postID).First(&post).Error
+	err := database.Select("posts.*, COUNT(founds.post_id) > 0 as found_by_user").
+		Joins("LEFT JOIN founds ON posts.id = founds.post_id AND founds.user_id = ?", userID).
+		Group("posts.id").
+	    Where("posts.id = ?", postID).
+		First(&post).
+		Error
+
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return &utils.APIError{
@@ -447,6 +461,13 @@ func (pr *PostRepository) FoundPost(userID, postID string) (apiError *utils.APIE
 		return &utils.APIError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
+		}
+	}
+
+	if post.FoundByUser != nil && *post.FoundByUser {
+		return &utils.APIError{
+			StatusCode: http.StatusConflict,
+			Message:    "you already found this post",
 		}
 	}
 
@@ -480,7 +501,13 @@ func (pr *PostRepository) UnfoundPost(userID, postID string) (apiError *utils.AP
 
 	var post models.Post
 
-	err := database.Where("id = ?", postID).First(&post).Error
+	err := database.Select("posts.*, COUNT(founds.post_id) > 0 as found_by_user").
+		Joins("LEFT JOIN founds ON posts.id = founds.post_id AND founds.user_id = ?", userID).
+		Group("posts.id").
+	    Where("posts.id = ?", postID).
+		First(&post).
+		Error
+	
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return &utils.APIError{
@@ -491,6 +518,13 @@ func (pr *PostRepository) UnfoundPost(userID, postID string) (apiError *utils.AP
 		return &utils.APIError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
+		}
+	}
+
+	if post.FoundByUser != nil && !*post.FoundByUser {
+		return &utils.APIError{
+			StatusCode: http.StatusConflict,
+			Message:    "you didn't found this post",
 		}
 	}
 
