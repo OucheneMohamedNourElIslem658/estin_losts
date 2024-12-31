@@ -4,6 +4,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/OucheneMohamedNourElIslem658/estin_losts/shared/database"
 	"github.com/OucheneMohamedNourElIslem658/estin_losts/shared/database/models"
@@ -27,10 +28,11 @@ func NewPostRepository() *PostRepository {
 type CreatePostDTO struct {
 	Title             string                  `form:"title" binding:"required"`
 	Description       string                  `form:"description"`
-	LocationLatitude  *float64                `form:"location_latitude" binding:"required_with=LocationLongitude,min=-90,max=90"`
-	LocationLongitude *float64                `form:"location_longitude" binding:"required_with=LocationLatitude,min=-180,max=180"`
+	Time              *time.Time              `form:"time" binding:"omitempty,object_time"`
+	LocationLatitude  *float64                `form:"location_latitude" binding:"omitempty,required_with=LocationLongitude,min=-90,max=90"`
+	LocationLongitude *float64                `form:"location_longitude" binding:"omitempty,required_with=LocationLatitude,min=-180,max=180"`
 	Type              string                  `form:"type" binding:"required,oneof=lost found"`
-	Images            []*multipart.FileHeader `form:"images" binding:"omitempty,max=3,dive,image"`
+	Images            []*multipart.FileHeader `form:"images" binding:"required,max=3,dive,image"`
 }
 
 func (pr *PostRepository) CreatePost(userID string, dto CreatePostDTO) (apiError *utils.APIError) {
@@ -49,6 +51,7 @@ func (pr *PostRepository) CreatePost(userID string, dto CreatePostDTO) (apiError
 	postToCreate := models.Post{
 		Title:             dto.Title,
 		Description:       &dto.Description,
+		Time:              dto.Time,
 		LocationLatitude:  dto.LocationLatitude,
 		LocationLongitude: dto.LocationLongitude,
 		Type:              models.PostType(dto.Type),
@@ -144,19 +147,7 @@ func (pr *PostRepository) DeletePost(userID, postID string) (apiError *utils.API
 		}
 	}
 
-	filestorage := pr.filestorage
-
-	for _, image := range post.Images {
-		err = filestorage.DeleteImage(image)
-		if err != nil {
-			return &utils.APIError{
-				StatusCode: http.StatusInternalServerError,
-				Message:    err.Error(),
-			}
-		}
-	}
-
-	err = database.Delete(&post).Error
+	err = database.Unscoped().Delete(&post).Error
 	if err != nil {
 		return &utils.APIError{
 			StatusCode: http.StatusInternalServerError,
@@ -396,10 +387,10 @@ func (pr *PostRepository) UnclaimPost(userID, postID string) (apiError *utils.AP
 	var post models.Post
 
 	err := database.Select("posts.*, COUNT(claims.post_id) > 0 as claimed_by_user").
-	Joins("LEFT JOIN claims ON posts.id = claims.post_id AND claims.user_id = ?", userID).
-	Group("posts.id").
-	Where("posts.id = ?", postID).
-	First(&post).Error
+		Joins("LEFT JOIN claims ON posts.id = claims.post_id AND claims.user_id = ?", userID).
+		Group("posts.id").
+		Where("posts.id = ?", postID).
+		First(&post).Error
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -447,7 +438,7 @@ func (pr *PostRepository) FoundPost(userID, postID string) (apiError *utils.APIE
 	err := database.Select("posts.*, COUNT(founds.post_id) > 0 as found_by_user").
 		Joins("LEFT JOIN founds ON posts.id = founds.post_id AND founds.user_id = ?", userID).
 		Group("posts.id").
-	    Where("posts.id = ?", postID).
+		Where("posts.id = ?", postID).
 		First(&post).
 		Error
 
@@ -504,10 +495,10 @@ func (pr *PostRepository) UnfoundPost(userID, postID string) (apiError *utils.AP
 	err := database.Select("posts.*, COUNT(founds.post_id) > 0 as found_by_user").
 		Joins("LEFT JOIN founds ON posts.id = founds.post_id AND founds.user_id = ?", userID).
 		Group("posts.id").
-	    Where("posts.id = ?", postID).
+		Where("posts.id = ?", postID).
 		First(&post).
 		Error
-	
+
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return &utils.APIError{

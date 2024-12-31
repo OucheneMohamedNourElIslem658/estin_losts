@@ -29,4 +29,5 @@ func (pr *ProfilesRouter) RegisterRoutes() {
 	authorizationWithUserCheck := authMiddlewares.AuthorizationWithUserCheck()
 
 	router.GET("/profile", authorization, authorizationWithUserCheck, profilesController.GetProfile)
+	router.GET("/users/:user_id", authorization, authorizationWithUserCheck, profilesController.GetUser)
 }

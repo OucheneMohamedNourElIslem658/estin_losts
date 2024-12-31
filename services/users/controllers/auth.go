@@ -24,15 +24,32 @@ func NewAuthController() *AuthController {
 func (authcontroller *AuthController) RefreshIdToken(ctx *gin.Context) {
 	authorization := ctx.GetHeader("Authorization")
 
+	if authorization == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "missing authorization header",
+		})
+		return
+
+	}
+
+	refreshToken := authorization[len("Bearer "):]
+
+	if refreshToken == "" {
+		ctx.JSON(http.StatusBadRequest, gin.H{
+			"error": "missing refresh token",
+		})
+		return
+	}
+
 	repository := authcontroller.authRepository
 
-	if idToken, err := repository.RefreshIdToken(authorization); err != nil {
+	if idToken, err := repository.RefreshIdToken(refreshToken); err != nil {
 		ctx.JSON(err.StatusCode, gin.H{
 			"error": err.Message,
 		})
 	} else {
+		ctx.SetCookie("id_token", *idToken, 3600, "/", "", false, true)
 		ctx.JSON(http.StatusOK, nil)
-		ctx.SetCookie("id_token", *idToken, 3600, "/", "localhost", false, true)
 	}
 }
 
@@ -77,7 +94,6 @@ func (authcontroller *AuthController) OAuthCallback(ctx *gin.Context) {
 	authRepository := authcontroller.authRepository
 
 	if idToken, refreshToken, err := authRepository.OAuthCallback(provider, code, ctx.Request.Context()); err != nil {
-		fmt.Println("failure")
 		failureURL := fmt.Sprintf("%v?message=%v", metadata.FailureURL, err.Message)
 		ctx.Redirect(http.StatusTemporaryRedirect, failureURL)
 	} else {

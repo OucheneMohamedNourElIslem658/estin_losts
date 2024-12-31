@@ -6,14 +6,14 @@ import (
 )
 
 type AuthRouter struct {
-	Router          *gin.RouterGroup
-	authController  *controllers.AuthController
+	Router         *gin.RouterGroup
+	authController *controllers.AuthController
 }
 
 func NewAuthRouter(router *gin.RouterGroup) *AuthRouter {
 	return &AuthRouter{
-		Router:          router,
-		authController:  controllers.NewAuthController(),
+		Router:         router,
+		authController: controllers.NewAuthController(),
 	}
 }
 
@@ -23,4 +23,5 @@ func (ar *AuthRouter) RegisterRoutes() {
 
 	router.GET("/oauth/:provider/login", authController.OAuth)
 	router.GET("/oauth/:provider/callback", authController.OAuthCallback)
+	router.GET("/refresh-id-token", authController.RefreshIdToken)
 }

@@ -26,18 +26,19 @@ func NewAuthRepository() *AuthRepository {
 }
 
 func (ar *AuthRepository) RefreshIdToken(refreshToken string) (idToken *string, apiError *utils.APIError) {
-	if refreshToken == "" {
+	claims, isValid, err := utils.VerifyRefreshToken(refreshToken)
+
+	if err != nil {
 		return nil, &utils.APIError{
-			StatusCode: http.StatusBadRequest,
-			Message:    "undefined refresh token",
+			StatusCode: http.StatusInternalServerError,
+			Message:    err.Error(),
 		}
 	}
 
-	claims, err := utils.VerifyRefreshToken(refreshToken)
-	if err != nil {
+	if !isValid {
 		return nil, &utils.APIError{
-			StatusCode: http.StatusUnauthorized,
-			Message:    "refresh token expired",
+			StatusCode: http.StatusBadRequest,
+			Message:    "invalid refresh token",
 		}
 	}
 

@@ -72,20 +72,20 @@ func CreateRefreshToken(id string) (string, error) {
 	return idToken, err
 }
 
-func VerifyRefreshToken(refreshToken string) (jwt.MapClaims, error) {
+func VerifyRefreshToken(refreshToken string) (jwtCalims jwt.MapClaims, isValid bool , err error) {
 	jwtRefreshToken, err := jwt.Parse(refreshToken, func(t *jwt.Token) (interface{}, error) {
 		return secretKey, nil
 	})
 
 	if err != nil {
-		return nil, err
+		return nil, false, err
 	}
 
 	if !jwtRefreshToken.Valid {
-		return nil, errors.New("invalid refresh token")
+		return nil, false, nil
 	}
 
 	claims, _ := jwtRefreshToken.Claims.(jwt.MapClaims)
 
-	return claims, nil
+	return claims, true, nil
 }

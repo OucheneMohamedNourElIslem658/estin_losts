@@ -31,3 +31,18 @@ func (pc *ProfilesController) GetProfile(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, user)
 }
+
+func (pc *ProfilesController) GetUser(ctx *gin.Context) {
+	userID := ctx.Param("user_id")
+
+	profilesRepository := pc.profilesRepository
+	user, err := profilesRepository.GetUser(userID)
+	if err != nil {
+		ctx.JSON(err.StatusCode, gin.H{
+			"error": err.Message,
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, user)
+}

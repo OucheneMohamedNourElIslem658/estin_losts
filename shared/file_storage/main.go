@@ -113,7 +113,7 @@ func (fs *FileStorage) UploadFile(fileHeader *multipart.FileHeader, folder strin
 	image := &models.Image{
 		ID:                id,
 		Name:              fileHeader.Filename,
-		FileStorageFolder: folder,
+		FileStorageFolder: fmt.Sprintf("%s/%s", folder, id),
 		URL:               url,
 	}
 
@@ -152,7 +152,7 @@ func (fs *FileStorage) UploadFiles(filesHeaders []*multipart.FileHeader, folder 
 }
 
 func (fs *FileStorage) DeleteImage(image models.Image) error {
-	objectName := fmt.Sprintf("%s/%s", image.FileStorageFolder, image.ID)
+	objectName := fmt.Sprintf("%s/%s", image.FileStorageFolder, image.Name)
 	err := fs.client.RemoveObject(
 		context.Background(),
 		fs.bucketName,

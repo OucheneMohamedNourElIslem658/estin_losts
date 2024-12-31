@@ -3,7 +3,7 @@ package database
 import (
 	"log"
 
-	// "github.com/OucheneMohamedNourElIslem658/estin_losts/shared/database/models"
+	"github.com/OucheneMohamedNourElIslem658/estin_losts/shared/database/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -11,12 +11,12 @@ import (
 var Instance *gorm.DB
 
 func Init() {
-	dsn := envs.getDatabaseDSN()
+	dsn := Envs.GetDatabaseDSN()
 
 	var err error
 	Instance, err = gorm.Open(postgres.New(
 		postgres.Config{
-			DSN: dsn,
+			DSN:                  dsn,
 			PreferSimpleProtocol: true,
 		},
 	), &gorm.Config{})
@@ -34,12 +34,12 @@ func Init() {
 
 func migrateTables() error {
 	err := Instance.AutoMigrate(
-		// &models.User{},
-		// &models.Post{},
-		// &models.Image{},
-		// &models.Claims{},
-		// &models.Founds{},
-		// &models.Notification{},
+		&models.User{},
+		&models.Post{},
+		&models.Image{},
+		&models.Claims{},
+		&models.Founds{},
+		&models.Notification{},
 	)
 	if err != nil {
 		return err

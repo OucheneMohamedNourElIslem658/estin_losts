@@ -26,21 +26,27 @@ func (am *AuthorizationMiddlewares) Authorization() gin.HandlerFunc {
 			idToken := authorization[len("Bearer "):]
 
 			if idToken != "" {
-				claims, _, err := utils.VerifyIDToken(idToken)
+				claims, isValid, err := utils.VerifyIDToken(idToken)
 
 				if err != nil {
-					refreshToken := ctx.GetHeader("refresh_token")
-
-					idToken, apiError := am.authRepository.RefreshIdToken(refreshToken)
-					if apiError != nil {
-						ctx.AbortWithStatusJSON(apiError.StatusCode, gin.H{
-							"error": apiError.Message,
+					if err.Error() == "Token is expired" {
+						ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{
+							"error": "id token expired",
 						})
 						return
 					}
 
-					ctx.SetCookie("id_token", *idToken, 3600, "/", "", false, true)
-					claims, _, _ = utils.VerifyIDToken(*idToken)
+					ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{
+						"error": err.Error(),
+					})
+					return
+				}
+
+				if !isValid {
+					ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+						"error": "invalid id token",
+					})
+					return
 				}
 
 				ctx.Set("id", claims.ID)

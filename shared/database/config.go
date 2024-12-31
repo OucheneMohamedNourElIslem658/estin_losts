@@ -8,7 +8,7 @@ import (
 	"github.com/joho/godotenv"
 )
 
-type config struct {
+type Config struct {
 	User     string
 	Password string
 	Host     string
@@ -16,13 +16,13 @@ type config struct {
 	Name     string
 }
 
-var envs = initAPI()
+var Envs = initAPI()
 
-func initAPI() config {
-	if err := godotenv.Load();err != nil {
+func initAPI() Config {
+	if err := godotenv.Load(); err != nil {
 		log.Fatalf("Error loading .env file")
 	}
-	return config{
+	return Config{
 		User:     os.Getenv("DB_USER"),
 		Password: os.Getenv("DB_PASSWORD"),
 		Host:     os.Getenv("DB_HOST"),
@@ -31,13 +31,13 @@ func initAPI() config {
 	}
 }
 
-func (config config) getDatabaseDSN() string {
+func (Config Config) GetDatabaseDSN() string {
 	return fmt.Sprintf(
-		"host=%v user=%v password=%v dbname=%v port=%v",
-		config.Host,
-		config.User,
-		config.Password,
-		config.Name,
-		config.Port,
+		"host=%v user=%v password=%v dbname=%v port=%v sslmode=disable",
+		Config.Host,
+		Config.User,
+		Config.Password,
+		Config.Name,
+		Config.Port,
 	)
 }
