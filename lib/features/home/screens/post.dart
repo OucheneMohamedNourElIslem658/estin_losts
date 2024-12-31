@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:estin_losts/features/home/widgets/post.dart';
 import 'package:estin_losts/shared/constents/colors.dart';
 import 'package:estin_losts/shared/constents/fonts.dart';
@@ -7,14 +8,55 @@ import 'package:estin_losts/shared/models/post.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class PostScreen extends StatelessWidget {
+class PostScreen extends StatefulWidget {
   const PostScreen({super.key});
+
+  @override
+  State<PostScreen> createState() => _PostScreenState();
+}
+
+class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateMixin {
+  late AnimationController bottomBarAnimationController;
+  late Animation<double> bottomBarAnimation;
+  late ScrollController scrollController;
+
+  void _initAnimation() {
+    bottomBarAnimationController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 200)
+    );
+
+    bottomBarAnimation = Tween<double>(
+      begin: 0,
+      end: 1
+    ).animate(bottomBarAnimationController);
+
+    scrollController = ScrollController();
+    scrollController.addListener(() {
+      final isInTopOfScroll = scrollController.offset <= 0;
+      _toggleBottomBar(isInTopOfScroll);
+    });
+  }
+
+  void _toggleBottomBar(bool isInTopOfScroll) {
+    if (!isInTopOfScroll) {
+        bottomBarAnimationController.forward();
+    } else {
+        bottomBarAnimationController.reverse();
+    }
+  }
+
+  @override
+  void initState() {
+    _initAnimation();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBodyBehindAppBar: true,
       appBar: AppBar(
-        backgroundColor: CustomColors.black1,
         leading: IconButton(
           onPressed: (){}, 
           icon: const Icon(
@@ -31,10 +73,11 @@ class PostScreen extends StatelessWidget {
           ),
         ),
       ),
-      body: const Stack(
+      body: Stack(
         children: [
           SingleChildScrollView(
-            child: Column(
+            controller: scrollController,
+            child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 PostImagesSlider(),
@@ -46,11 +89,20 @@ class PostScreen extends StatelessWidget {
               ],
             ),
           ),
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: 0,
-            child: ClaimBottomBar(),
+          AnimatedBuilder(
+            animation: bottomBarAnimationController,
+            builder: (context, child) {
+              final opacity = 1 - bottomBarAnimation.value;
+              return Positioned(
+                left: 0,
+                right: 0,
+                bottom: -bottomBarAnimation.value * 150,
+                child: Opacity(
+                  opacity: opacity,
+                  child: const ClaimBottomBar()
+                ),
+              );
+            }
           )
         ],
       ),
@@ -58,15 +110,33 @@ class PostScreen extends StatelessWidget {
   }
 }
 
-class PostImagesSlider extends StatelessWidget {
+class PostImagesSlider extends StatefulWidget {
   const PostImagesSlider({
     super.key,
   });
 
   @override
+  State<PostImagesSlider> createState() => _PostImagesSliderState();
+}
+
+class _PostImagesSliderState extends State<PostImagesSlider> {
+  int currentIndex = 0;
+
+  void _onPageChanged(int index, CarouselPageChangedReason reason) {
+    setState(() {
+      currentIndex = index;
+    });
+  }
+
+  final List<String> imagesList = List.generate(
+    3, 
+    (index) => postImageURL
+  );
+
+  @override
   Widget build(BuildContext context) {
     return Container(
-      height: 350,
+      height: 400,
       decoration: const BoxDecoration(
         color: CustomColors.black1,
         borderRadius: BorderRadius.vertical(
@@ -75,16 +145,31 @@ class PostImagesSlider extends StatelessWidget {
       ),
       child: Stack(
         children: [
-          CarouselView(
-            itemExtent: double.maxFinite, 
-            itemSnapping: true,
-            backgroundColor: CustomColors.black1,
-            children: List.generate(
-              3, 
-              (index) {
-                return CachedNetworkImage(imageUrl: postImageURL, fit: BoxFit.cover);
-              }
-            )
+          ClipRRect(
+            borderRadius: const BorderRadius.vertical(
+              bottom: Radius.circular(30)
+            ),
+            child: CarouselSlider(
+              options: CarouselOptions(
+                height: double.maxFinite,
+                viewportFraction: 1,
+                autoPlay: true,
+                autoPlayInterval: const Duration(seconds: 5),
+                autoPlayAnimationDuration: const Duration(milliseconds: 800),
+                autoPlayCurve: Curves.fastOutSlowIn,
+                scrollDirection: Axis.horizontal,
+                onPageChanged: (index, reason) => _onPageChanged(index, reason),
+              ),
+              items: List.generate(
+                imagesList.length, 
+                (index) {
+                  return CachedNetworkImage(
+                    imageUrl: imagesList[index],
+                    fit: BoxFit.cover,
+                  );
+                }
+              )
+            ),
           ),
           Align(
             alignment: Alignment.bottomCenter,
@@ -94,10 +179,12 @@ class PostImagesSlider extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 spacing: 5,
                 children: List.generate(
-                  3, 
+                  imagesList.length, 
                   (index) {
-                    final double size = index == 1 ? 15 : 10;
-                    final Color color = index == 1 ? Colors.white : CustomColors.grey1;
+                    final double size = index == currentIndex ? 13 : 10;
+                    final Color color = index == currentIndex 
+                      ? Colors.white 
+                      : Colors.white.withValues(alpha: 0.5);
 
                     return AnimatedContainer(
                       duration: const Duration(milliseconds: 100),
@@ -186,7 +273,7 @@ class ClaimBottomBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      height: 200,
+      height: 150,
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [

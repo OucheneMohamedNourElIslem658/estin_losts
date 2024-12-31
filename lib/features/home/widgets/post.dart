@@ -13,11 +13,16 @@ class PostsList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
-      child: Column(
-        spacing: 10,
-        children: List.generate(
-          postsEamples.length, 
-          (index) => PostCard(post: postsEamples[index])
+      child: Padding(
+        padding: const EdgeInsets.only(
+          bottom: 100
+        ),
+        child: Column(
+          spacing: 10,
+          children: List.generate(
+            postsEamples.length, 
+            (index) => PostCard(post: postsEamples[index])
+          ),
         ),
       ),
     );

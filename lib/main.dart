@@ -1,4 +1,4 @@
-import 'package:estin_losts/features/post/screens/post.dart';
+import 'package:estin_losts/features/home/screens/search.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -13,7 +13,10 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        scaffoldBackgroundColor: Colors.white,
+        scaffoldBackgroundColor: Colors.white ,
+        textSelectionTheme: const TextSelectionThemeData(
+          cursorColor: Colors.white,
+        ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             overlayColor: Colors.grey
@@ -23,7 +26,7 @@ class MyApp extends StatelessWidget {
           backgroundColor: Colors.transparent
         ),
       ),
-      home: const PostScreen(),
+      home: const SearchScreen(),
     );
   }
 }
