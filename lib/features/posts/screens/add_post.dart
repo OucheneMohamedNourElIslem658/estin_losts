@@ -34,6 +34,16 @@ class AddPostScreen extends StatelessWidget {
                 fontWeight: FontWeight.w500
               ),
             ),
+            actions: [
+              IconButton(
+                onPressed: () {}, 
+                icon: const Icon(
+                  Icons.close_rounded, 
+                  color: Colors.black,
+                  size: 30,
+                )
+              ),
+            ],
           )
         ], 
         body: SingleChildScrollView(
@@ -54,7 +64,6 @@ class AddPostScreen extends StatelessWidget {
                 const CustomTextField(
                   label: "Title",
                   hintText: "Enter title",
-                  autofocus: true,
                 ),
                 const SizedBox(height: 20),
                 const CustomTextField(
@@ -211,13 +220,11 @@ class CustomTextField extends StatelessWidget {
     required this.hintText,
     this.label,
     this.maxLines = 1,
-    this.autofocus = false
   });
 
   final String hintText;
   final String? label;
   final int maxLines;
-  final bool autofocus;
 
   @override
   Widget build(BuildContext context) {
@@ -252,7 +259,6 @@ class CustomTextField extends StatelessWidget {
         if (label != null) const SizedBox(height: 10),
         TextFormField(
           cursorColor: CustomColors.primaryBlue,
-          autofocus: autofocus,
           decoration: InputDecoration(
             hintText: " $hintText",
             hintStyle: const TextStyle(

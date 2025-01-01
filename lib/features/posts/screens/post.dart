@@ -1,6 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
-import 'package:estin_losts/features/posts/widgets/post.dart';
+import 'package:estin_losts/features/posts/widgets/posts_list.dart';
 import 'package:estin_losts/shared/constents/colors.dart';
 import 'package:estin_losts/shared/constents/fonts.dart';
 import 'package:estin_losts/shared/constents/posts_examples.dart';

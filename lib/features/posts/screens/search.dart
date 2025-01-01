@@ -1,5 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
-import 'package:estin_losts/shared/constents/posts_examples.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -7,6 +5,7 @@ import '../../../shared/constents/colors.dart';
 import '../../../shared/constents/fonts.dart';
 import '../widgets/custom_filter_ship.dart';
 import '../widgets/location_button.dart';
+import '../widgets/post_tile.dart';
 import '../widgets/select_time_button.dart';
 
 class SearchScreen extends StatelessWidget {
@@ -136,67 +135,8 @@ class CustomSearchAnchor extends StatelessWidget {
           Column(
             children: List.generate(
               10, 
-              (index) => Container(
-              margin: const EdgeInsets.symmetric(horizontal: 20),
-              padding: const EdgeInsets.only(
-                left: 10,
-                right: 20,
-                top: 10,
-                bottom: 10
-              ),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(10),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withValues(alpha: 0.2),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5)
-                  )
-                ]
-              ),
-              child: Row(
-                children: [
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(10),
-                    child: CachedNetworkImage(
-                      imageUrl: postImageURL,
-                      height: 90,
-                      width: 80,
-                      fit: BoxFit.cover,
-                    ),
-                  ),
-                  const SizedBox(width: 10),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "1st  May- Sat -2:00 PM",
-                          style: TextStyle(
-                            color: CustomColors.primaryBlue,
-                            fontSize: 14,
-                            fontFamily: Fonts.airbndcereal,
-                            fontWeight: FontWeight.w500
-                          ),
-                        ),
-                        SizedBox(height: 5),
-                        Text(
-                          "A virtual evening of smooth jazz",
-                          style: TextStyle(
-                            color: CustomColors.black1,
-                            fontSize: 18,
-                            fontFamily: Fonts.airbndcereal,
-                            fontWeight: FontWeight.w500
-                          ),
-                        )
-                      ],
-                    )
-                  )
-                ],
-              ),
-            ),
-          )
+              (index) => const PostTile(),
+            )
           )
         ],
       ),

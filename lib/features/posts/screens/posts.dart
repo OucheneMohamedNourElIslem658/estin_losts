@@ -1,10 +1,11 @@
 import 'package:estin_losts/features/posts/widgets/drawer.dart';
 import 'package:estin_losts/shared/constents/colors.dart';
 import 'package:estin_losts/shared/constents/fonts.dart';
+import 'package:estin_losts/shared/widgets/custom_tab_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import '../widgets/post.dart';
+import '../widgets/posts_list.dart';
 
 class PostsScreen extends StatelessWidget {
   const PostsScreen({super.key});

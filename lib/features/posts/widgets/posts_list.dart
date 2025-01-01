@@ -294,36 +294,6 @@ class FirstClaims extends StatelessWidget {
   }
 }
 
-class CustomTabBar extends StatelessWidget {
-  const CustomTabBar({
-    super.key,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    const labelStyle = TextStyle(
-      color: Colors.white,
-      fontFamily: Fonts.airbndcereal,
-      fontSize: 16
-    );
-
-    return const TabBar(
-      unselectedLabelColor: Colors.white,
-      labelColor: Colors.white,
-      dividerColor: Colors.transparent,
-      indicatorColor: Colors.white,
-      overlayColor: WidgetStatePropertyAll(Colors.transparent),
-      padding: EdgeInsets.only(bottom: 2),
-      labelPadding: EdgeInsets.only(bottom: 6),
-      tabs: [
-        Text("All", style: labelStyle),
-        Text("Lost", style: labelStyle),
-        Text("Found", style: labelStyle)
-      ]
-    );
-  }
-}
-
 class NotificationButton extends StatelessWidget {
   const NotificationButton({
     super.key, 
