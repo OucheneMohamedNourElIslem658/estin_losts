@@ -1,4 +1,3 @@
-import 'package:estin_losts/features/posts/screens/add_post.dart';
 import 'package:estin_losts/features/user/screens/profile.dart';
 import 'package:flutter/material.dart';
 
