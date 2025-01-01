@@ -1,4 +1,4 @@
-import 'package:estin_losts/features/home/screens/search.dart';
+import 'package:estin_losts/features/posts/screens/add_post.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
           backgroundColor: Colors.transparent
         ),
       ),
-      home: const SearchScreen(),
+      home: const AddPostScreen(),
     );
   }
 }

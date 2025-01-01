@@ -5,6 +5,9 @@ import 'package:flutter/material.dart';
 
 import '../../../shared/constents/colors.dart';
 import '../../../shared/constents/fonts.dart';
+import '../widgets/custom_filter_ship.dart';
+import '../widgets/location_button.dart';
+import '../widgets/select_time_button.dart';
 
 class SearchScreen extends StatelessWidget {
   const SearchScreen({super.key});
@@ -259,45 +262,7 @@ class FiltersBottomSheet extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              OutlinedButton(
-                onPressed: (){},
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  side: BorderSide(
-                    color: Colors.grey.withValues(alpha: 0.5),
-                    width: 1
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10)
-                  )
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      CupertinoIcons.clock_fill, 
-                      color: CustomColors.primaryBlue,
-                      size: 25,
-                    ),
-                    SizedBox(width: 10),
-                    Text(
-                      "Select Time",
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 16,
-                        fontFamily: Fonts.airbndcereal,
-                        fontWeight: FontWeight.w300
-                      ),
-                    ),
-                    SizedBox(width: 10),
-                    Icon(
-                      Icons.arrow_forward_ios_rounded, 
-                      color: CustomColors.primaryBlue,
-                      size: 15,
-                    ),
-                  ],
-                )
-              ),
+              const SelectTimeButton(),
               const SizedBox(height: 20),
               const Text(
                 "Location",
@@ -309,58 +274,7 @@ class FiltersBottomSheet extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              OutlinedButton(
-                onPressed: (){},
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.all(10),
-                  side: BorderSide(
-                    color: Colors.grey.withValues(alpha: 0.5),
-                    width: 1
-                  ),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(13)
-                  )
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(13),
-                        color: CustomColors.primaryBlue.withValues(alpha: 0.1),
-                      ),
-                      child: Container(
-                        padding: const EdgeInsets.all(3),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          color: Colors.white,
-                        ),
-                        child: const Icon(
-                          Icons.location_on_outlined, 
-                          color: CustomColors.primaryBlue,
-                          size: 25,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    const Text(
-                      "New Yourk, USA",
-                      style: TextStyle(
-                        color: Colors.grey,
-                        fontSize: 15,
-                        fontFamily: Fonts.airbndcereal,
-                        fontWeight: FontWeight.w300
-                      ),
-                    ),
-                    const Spacer(),
-                    const Icon(
-                      Icons.arrow_forward_ios_rounded, 
-                      color: CustomColors.primaryBlue,
-                      size: 15,
-                    ),
-                  ],
-                )
-              ),
+              const LocationButton(),
               const SizedBox(height: 50),
               Row(
                 children: [
@@ -419,40 +333,6 @@ class FiltersBottomSheet extends StatelessWidget {
           ),
         ),
       ),
-    );
-  }
-}
-
-class CustomFilterShip extends StatelessWidget {
-  const CustomFilterShip({
-    super.key,
-    required this.label,
-    this.isSelected = true,
-  });
-
-  final String label;
-  final bool isSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    final foregroundColor = !isSelected 
-        ? CustomColors.black1 
-        : Colors.white;
-
-    return FilterChip(
-      label: Text(
-        label,
-        style: TextStyle(
-          color: foregroundColor,  
-          fontSize: 16,
-          fontFamily: Fonts.airbndcereal,
-          fontWeight: FontWeight.w300
-        ),
-      ),
-      onSelected: (value) {},
-      selected: isSelected,
-      selectedColor: CustomColors.primaryBlue,
-      checkmarkColor: foregroundColor,
     );
   }
 }

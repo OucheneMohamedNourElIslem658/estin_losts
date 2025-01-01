@@ -1,4 +1,4 @@
-import 'package:estin_losts/features/home/widgets/drawer.dart';
+import 'package:estin_losts/features/posts/widgets/drawer.dart';
 import 'package:estin_losts/shared/constents/colors.dart';
 import 'package:estin_losts/shared/constents/fonts.dart';
 import 'package:flutter/material.dart';
