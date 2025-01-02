@@ -10,10 +10,10 @@ import (
 
 func init() {
 	database.Init()
+	realtime.Init()
 	filestorage.Init()
 	oauth.Init()
 	utils.InitValidators()
-	realtime.Init()
 }
 
 func main() {

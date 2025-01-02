@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 
 	"github.com/OucheneMohamedNourElIslem658/estin_losts/shared/database/models"
+	"github.com/OucheneMohamedNourElIslem658/estin_losts/shared/database/realtime"
 	"github.com/google/uuid"
 	"github.com/minio/minio-go/v7"
 	"github.com/minio/minio-go/v7/pkg/credentials"
@@ -32,7 +33,7 @@ func Init() {
 	})
 
 	if err != nil {
-		log.Fatal(err.Error())
+		panic(err)
 	}
 
 	bucketExists, err := client.BucketExists(
@@ -41,7 +42,7 @@ func Init() {
 	)
 
 	if err != nil {
-		log.Fatal(err.Error())
+		panic(err)
 	}
 
 	if !bucketExists {
@@ -51,7 +52,7 @@ func Init() {
 			minio.MakeBucketOptions{Region: ""},
 		)
 		if err != nil {
-			log.Fatal(err.Error())
+			panic(err)
 		}
 
 	}
@@ -60,6 +61,8 @@ func Init() {
 		client:     client,
 		bucketName: envs.bucketName,
 	}
+
+	initFileStorageCleaner()
 
 	log.Println("File Storage Connected Successfully!")
 }
@@ -140,7 +143,7 @@ func (fs *FileStorage) UploadFiles(filesHeaders []*multipart.FileHeader, folder 
 
 		if err != nil {
 			for _, uploadedFile := range uploadedFiles {
-				fs.DeleteImage(uploadedFile)
+				fs.deleteImage(uploadedFile)
 			}
 			return nil, err
 		}
@@ -151,7 +154,7 @@ func (fs *FileStorage) UploadFiles(filesHeaders []*multipart.FileHeader, folder 
 	return uploadedFiles, nil
 }
 
-func (fs *FileStorage) DeleteImage(image models.Image) error {
+func (fs *FileStorage) deleteImage(image models.Image) error {
 	objectName := fmt.Sprintf("%s/%s", image.FileStorageFolder, image.Name)
 	err := fs.client.RemoveObject(
 		context.Background(),
@@ -160,4 +163,16 @@ func (fs *FileStorage) DeleteImage(image models.Image) error {
 		minio.RemoveObjectOptions{},
 	)
 	return err
+}
+
+func initFileStorageCleaner() {
+	realtime.Instance.Listen("images", func(snapshotType realtime.SnapshotType, payload map[string]interface{}) {
+		if snapshotType == realtime.Delete {
+			image := models.Image{
+				Name:              payload["name"].(string),
+				FileStorageFolder: payload["file_storage_folder"].(string),
+			}
+			Instance.deleteImage(image)
+		}
+	})
 }

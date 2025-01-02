@@ -8,8 +8,6 @@ import (
 	"time"
 
 	"github.com/OucheneMohamedNourElIslem658/estin_losts/shared/database"
-	"github.com/OucheneMohamedNourElIslem658/estin_losts/shared/database/models"
-	filestorage "github.com/OucheneMohamedNourElIslem658/estin_losts/shared/file_storage"
 	"github.com/lib/pq"
 )
 
@@ -55,8 +53,6 @@ func Init() {
 	Instance = &Realtime{
 		database: database,
 	}
-
-	Instance.deleteImageFromFileStorage()
 
 	log.Println("Realtime initialized successfully!")
 }
@@ -140,16 +136,4 @@ func (r *Realtime) Listen(tableName string, onTableChange func(snapshotType Snap
 			}
 		}
 	}()
-}
-
-func (r *Realtime) deleteImageFromFileStorage() {
-	r.Listen("images", func(snapshotType SnapshotType, payload map[string]interface{}) {
-		if snapshotType == Delete {
-			image := models.Image{
-				Name:              payload["name"].(string),
-				FileStorageFolder: payload["file_storage_folder"].(string),
-			}
-			filestorage.Instance.DeleteImage(image)
-		}
-	})
 }
