@@ -29,6 +29,11 @@ func Init() {
 		log.Fatal(err)
 	}
 
+	err = CreateUUIDExtension(Instance)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	log.Println("Database connected succesfully!")
 }
 
@@ -44,5 +49,15 @@ func migrateTables() error {
 	if err != nil {
 		return err
 	}
+	return nil
+}
+
+func CreateUUIDExtension(db *gorm.DB) error {
+	err := db.Exec(`CREATE EXTENSION IF NOT EXISTS "uuid-ossp";`).Error
+	if err != nil {
+		log.Fatalf("Error creating UUID extension: %v", err)
+		return err
+	}
+	log.Println("UUID extension created successfully!")
 	return nil
 }

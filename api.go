@@ -1,6 +1,7 @@
 package main
 
 import (
+	notificationsRouter "github.com/OucheneMohamedNourElIslem658/estin_losts/services/notifications/routers"
 	postsRouters "github.com/OucheneMohamedNourElIslem658/estin_losts/services/posts/routers"
 	usersRouters "github.com/OucheneMohamedNourElIslem658/estin_losts/services/users/routers"
 	"github.com/gin-gonic/gin"
@@ -38,6 +39,11 @@ func (s *Server) Start() {
 	subRoute = v1.Group("/posts")
 	postsRouter := postsRouters.NewPostsRouter(subRoute)
 	postsRouter.RegisterRoutes()
+
+	subRoute = v1.Group("/notifications")
+	notificationsRouter := notificationsRouter.NewNotificationsRouter(subRoute)
+	notificationsRouter.RegisterRoutes()
+
 
 	router.Run(s.address)
 }

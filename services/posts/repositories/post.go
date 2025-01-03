@@ -370,10 +370,10 @@ func (pr *PostRepository) ClaimPost(userID, postID string) (apiError *utils.APIE
 		}
 	}
 
-	if post.Type == models.Found {
+	if post.Type == models.Lost {
 		return &utils.APIError{
 			StatusCode: http.StatusConflict,
-			Message:    "post is found",
+			Message:    "you can not claim a lost post",
 		}
 	}
 
@@ -387,7 +387,6 @@ func (pr *PostRepository) ClaimPost(userID, postID string) (apiError *utils.APIE
 	err = database.Create(&models.Claims{
 		PostID:       postID,
 		UserID:       userID,
-		SeenByPoster: false,
 	}).Error
 
 	if err != nil {
@@ -483,10 +482,10 @@ func (pr *PostRepository) FoundPost(userID, postID string) (apiError *utils.APIE
 		}
 	}
 
-	if post.Type == models.Lost {
+	if post.Type == models.Found {
 		return &utils.APIError{
 			StatusCode: http.StatusConflict,
-			Message:    "post is lost",
+			Message:    "you can not found a found post",
 		}
 	}
 
@@ -497,11 +496,15 @@ func (pr *PostRepository) FoundPost(userID, postID string) (apiError *utils.APIE
 		}
 	}
 
-	err = database.Model(&post).Association("Founders").Append(&models.User{ID: userID})
+	err = database.Create(&models.Founds{
+		PostID:       postID,
+		UserID:       userID,
+	}).Error
+
 	if err != nil {
 		return &utils.APIError{
-			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
+			StatusCode: http.StatusInternalServerError,
 		}
 	}
 

@@ -1,5 +1,13 @@
 package models
 
+import (
+	"fmt"
+	"time"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
+)
+
 type NotificationTag string
 
 const (
@@ -11,11 +19,18 @@ const (
 )
 
 type Notification struct {
-	ID     string          `gorm:"primaryKey" json:"id"`
-	PostID string          `json:"course_id"`
-	UserID string          `json:"user_id"`
-	Post   *Post           `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"post,omitempty"`
-	User   *User           `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user,omitempty"`
-	Seen   bool            `json:"seen"`
-	Tag    NotificationTag `sql:"type:enum('created', 'found', 'delivered', 'claim_added', 'found_added')" gorm:"default:'created'" json:"tag"`
+	ID        string          `gorm:"primaryKey,default:uuid_generate_v4()" json:"id"`
+	PostID    string          `json:"course_id"`
+	UserID    string          `json:"user_id"`
+	Post      *Post           `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"post,omitempty"`
+	User      *User           `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user,omitempty"`
+	Seen      bool            `json:"seen"`
+	Tag       NotificationTag `sql:"type:enum('created', 'found', 'delivered', 'claim_added', 'found_added')" gorm:"default:'created'" json:"tag"`
+	CreatedAt time.Time       `json:"created_at"`
+}
+
+func (n *Notification) BeforeCreate(tx *gorm.DB) (err error) {
+	n.ID = uuid.New().String()
+	fmt.Println(n.ID)
+	return
 }

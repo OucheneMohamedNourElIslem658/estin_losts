@@ -1,8 +1,8 @@
 package models
 
 import (
-	"gorm.io/gorm"
 	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
 type User struct {
@@ -15,6 +15,7 @@ type User struct {
 	Posts         []Post `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"posts,omitempty"`
 	Claims        []Post `gorm:"many2many:claims" json:"claims,omitempty"`
 	Founds        []Post `gorm:"many2many:founds" json:"founds,omitempty"`
+	Notifications []Post `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"notifications,omitempty"`
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
@@ -23,17 +24,15 @@ func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
 }
 
 type Claims struct {
-	PostID       string `gorm:"primaryKey" json:"course_id"`
-	UserID       string `gorm:"primaryKey" json:"user_id"`
-	Post         *Post  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"post,omitempty"`
-	User         *User  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user,omitempty"`
-	SeenByPoster bool   `gorm:"default:false" json:"seen_by_poster"`
+	PostID string `gorm:"primaryKey" json:"course_id"`
+	UserID string `gorm:"primaryKey" json:"user_id"`
+	Post   *Post  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"post,omitempty"`
+	User   *User  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user,omitempty"`
 }
 
 type Founds struct {
-	PostID       string `gorm:"primaryKey" json:"course_id"`
-	UserID       string `gorm:"primaryKey" json:"user_id"`
-	Post         *Post  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"post,omitempty"`
-	User         *User  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user,omitempty"`
-	SeenByPoster bool   `gorm:"default:false" json:"seen_by_poster"`
+	PostID string `gorm:"primaryKey" json:"course_id"`
+	UserID string `gorm:"primaryKey" json:"user_id"`
+	Post   *Post  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"post,omitempty"`
+	User   *User  `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user,omitempty"`
 }
