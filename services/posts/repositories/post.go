@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	notificationsRepositories "github.com/OucheneMohamedNourElIslem658/estin_losts/services/notifications/repositories"
 	"github.com/OucheneMohamedNourElIslem658/estin_losts/shared/database"
 	"github.com/OucheneMohamedNourElIslem658/estin_losts/shared/database/models"
 	filestorage "github.com/OucheneMohamedNourElIslem658/estin_losts/shared/file_storage"
@@ -16,12 +17,14 @@ import (
 type PostRepository struct {
 	database    *gorm.DB
 	filestorage *filestorage.FileStorage
+	notificationRepository *notificationsRepositories.NotificationRepository
 }
 
 func NewPostRepository() *PostRepository {
 	return &PostRepository{
 		database:    database.Instance,
 		filestorage: filestorage.Instance,
+		notificationRepository: notificationsRepositories.NewNotificationRepository(),
 	}
 }
 
@@ -67,6 +70,8 @@ func (pr *PostRepository) CreatePost(userID string, dto CreatePostDTO) (apiError
 		}
 	}
 
+	pr.notificationRepository.AddPostCreationNotification(postToCreate)
+
 	return nil
 }
 
@@ -99,8 +104,11 @@ func (pr *PostRepository) UpdatePost(userID, postID string, dto UpdatePostDTO) (
 		post.Type = models.PostType(dto.Type)
 	}
 
+	var postHasBeenFound bool
+
 	if dto.HasBeenFound != nil && post.Type == models.Lost {
 		post.HasBeenFound = *dto.HasBeenFound
+		postHasBeenFound = *dto.HasBeenFound
 	} else if dto.HasBeenFound != nil {
 		return &utils.APIError{
 			StatusCode: http.StatusConflict,
@@ -108,8 +116,11 @@ func (pr *PostRepository) UpdatePost(userID, postID string, dto UpdatePostDTO) (
 		}
 	}
 
+	var postHasBeenDelivered bool
+
 	if dto.HasBeenDelivered != nil && post.Type == models.Found {
 		post.HasBeenDelivered = *dto.HasBeenDelivered
+		postHasBeenDelivered = *dto.HasBeenDelivered
 	} else if dto.HasBeenDelivered != nil {
 		return &utils.APIError{
 			StatusCode: http.StatusConflict,
@@ -123,6 +134,14 @@ func (pr *PostRepository) UpdatePost(userID, postID string, dto UpdatePostDTO) (
 			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
 		}
+	}
+
+	if postHasBeenFound {
+		pr.notificationRepository.AddObjectFoundNotification(post)
+	}
+
+	if postHasBeenDelivered {
+		pr.notificationRepository.AddObjectDeliveredNotification(post)
 	}
 
 	return nil
@@ -378,6 +397,8 @@ func (pr *PostRepository) ClaimPost(userID, postID string) (apiError *utils.APIE
 		}
 	}
 
+	pr.notificationRepository.AddClaimAddedNotification(post)
+
 	return nil
 }
 
@@ -483,6 +504,8 @@ func (pr *PostRepository) FoundPost(userID, postID string) (apiError *utils.APIE
 			Message:    err.Error(),
 		}
 	}
+
+	pr.notificationRepository.AddFoundAddedNotification(post)
 
 	return nil
 }
