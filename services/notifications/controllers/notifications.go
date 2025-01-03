@@ -27,7 +27,7 @@ func (nc *NotificationsController) UpdateNotification(ctx *gin.Context) {
 	}
 
 	notificationID := ctx.Param("notification_id")
-	userID := ctx.GetString("user_id")
+	userID := ctx.GetString("id")
 
 	apiError := nc.notificationRepository.UpdateNotification(notificationID, userID, dto)
 	if apiError != nil {

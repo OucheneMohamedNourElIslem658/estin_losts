@@ -27,7 +27,6 @@ func (r *NotificationRepository) AddPostCreationNotification(post models.Post) (
 		WHERE id != ?
 	`, post.ID, models.PostCreated, post.UserID).Error
 
-
 	if err != nil {
 		return err
 	}
@@ -37,9 +36,9 @@ func (r *NotificationRepository) AddPostCreationNotification(post models.Post) (
 
 func (r *NotificationRepository) AddFoundAddedNotification(post models.Post) (err error) {
 	err = r.database.Create(&models.Notification{
-		UserID:  post.UserID,
-		PostID:  post.ID,
-		Tag:     models.FoundAdded,
+		UserID: post.UserID,
+		PostID: post.ID,
+		Tag:    models.FoundAdded,
 	}).Error
 
 	if err != nil {
@@ -51,9 +50,9 @@ func (r *NotificationRepository) AddFoundAddedNotification(post models.Post) (er
 
 func (r *NotificationRepository) AddClaimAddedNotification(post models.Post) (err error) {
 	err = r.database.Create(&models.Notification{
-		UserID:  post.UserID,
-		PostID:  post.ID,
-		Tag:     models.ClaimAdded,
+		UserID: post.UserID,
+		PostID: post.ID,
+		Tag:    models.ClaimAdded,
 	}).Error
 
 	if err != nil {
@@ -103,20 +102,20 @@ type NotificationDTO struct {
 func (r *NotificationRepository) UpdateNotification(notificationID, userID string, notification NotificationDTO) (apiError *utils.APIError) {
 	err := r.database.Model(&models.Notification{}).Where("id = ? AND user_id = ?", notificationID, userID).
 		Updates(models.Notification{Seen: notification.Seen}).Error
-	
+
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return &utils.APIError{
 				StatusCode: http.StatusNotFound,
 				Message:    "notification not found",
-			}	
+			}
 		}
 		return &utils.APIError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
 		}
 	}
-	
+
 	return
 }
 

@@ -24,7 +24,7 @@ type Notification struct {
 	UserID    string          `json:"user_id"`
 	Post      *Post           `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"post,omitempty"`
 	User      *User           `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"user,omitempty"`
-	Seen      bool            `json:"seen"`
+	Seen      bool            `gorm:"default:false" json:"seen"`
 	Tag       NotificationTag `sql:"type:enum('created', 'found', 'delivered', 'claim_added', 'found_added')" gorm:"default:'created'" json:"tag"`
 	CreatedAt time.Time       `json:"created_at"`
 }
