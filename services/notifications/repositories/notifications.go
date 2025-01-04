@@ -87,21 +87,22 @@ func (r *NotificationRepository) AddObjectDeliveredNotification(post models.Post
 func (r *NotificationRepository) GetUserNotifications(userID string) (userNotification []models.Notification, apiError *utils.APIError) {
 	err := r.database.Where("user_id = ?", userID).Find(&userNotification).Error
 	if err != nil {
-		return userNotification, &utils.APIError{
+		return nil, &utils.APIError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
 		}
 	}
-	return
+	return userNotification, nil
 }
 
 type NotificationDTO struct {
-	Seen bool `json:"seen" binding:"required"`
+	Seen *bool `json:"seen" binding:"required"`
 }
 
 func (r *NotificationRepository) UpdateNotification(notificationID, userID string, notification NotificationDTO) (apiError *utils.APIError) {
 	err := r.database.Model(&models.Notification{}).Where("id = ? AND user_id = ?", notificationID, userID).
-		Updates(models.Notification{Seen: notification.Seen}).Error
+	    Update("seen", *notification.Seen).
+		Error
 
 	if err != nil {
 		if err == gorm.ErrRecordNotFound {

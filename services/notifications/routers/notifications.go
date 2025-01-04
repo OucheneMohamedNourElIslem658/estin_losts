@@ -28,4 +28,7 @@ func (nc *NotificationsRouter) RegisterRoutes() {
 	authorizationWithUserCheck := nc.authorizationMiddlewares.AuthorizationWithUserCheck()
 
 	router.PUT("/:notification_id", authorization, authorizationWithUserCheck, notificationController.UpdateNotification)
+	router.GET("/snapshot", authorization, authorizationWithUserCheck, notificationController.GetUserNotifications)
+	router.GET("/statistics/snapshot", authorization, authorizationWithUserCheck, notificationController.GetNotificationStatistics)
+	router.GET("/new/snapshot", authorization, authorizationWithUserCheck, notificationController.PushNewNotification)
 }
