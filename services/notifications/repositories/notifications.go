@@ -84,8 +84,35 @@ func (r *NotificationRepository) AddObjectDeliveredNotification(post models.Post
 	return
 }
 
+func (r *NotificationRepository) GetNotification(notificationID string) (notification *models.Notification, apiError *utils.APIError) {
+	err := r.database.Where("id = ?", notificationID).
+		Preload("User").Preload("Post").
+		First(notification).
+		Error
+
+	if err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, &utils.APIError{
+				StatusCode: http.StatusNotFound,
+				Message: "notification not found",
+			}
+		}
+
+		return nil, &utils.APIError{
+			StatusCode: http.StatusInternalServerError,
+			Message: err.Error(),
+		}
+	}
+
+	return notification, nil
+}
+
 func (r *NotificationRepository) GetUserNotifications(userID string) (userNotification []models.Notification, apiError *utils.APIError) {
-	err := r.database.Where("user_id = ?", userID).Find(&userNotification).Error
+	err := r.database.Where("user_id = ?", userID).
+	    Preload("User").Preload("Post").
+	    Find(&userNotification).
+	    Error
+
 	if err != nil {
 		return nil, &utils.APIError{
 			StatusCode: http.StatusInternalServerError,
