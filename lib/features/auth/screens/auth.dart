@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:estin_losts/services/auth.dart';
 import 'package:estin_losts/shared/constents/colors.dart';
 import 'package:estin_losts/shared/constents/fonts.dart';
 import 'package:flutter/material.dart';
@@ -54,7 +55,7 @@ class AuthScreen extends StatelessWidget {
             ),
             const SizedBox(height: 25),
             ElevatedButton(
-              onPressed: (){}, 
+              onPressed: () async => await Auth.signInWithGoogle(), 
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(vertical: 13),
                 shape: RoundedRectangleBorder(

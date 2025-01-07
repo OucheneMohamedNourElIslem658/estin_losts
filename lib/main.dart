@@ -1,4 +1,4 @@
-import 'package:estin_losts/features/user/screens/profile.dart';
+import 'package:estin_losts/shared/utils/navigator.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -10,7 +10,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return MaterialApp.router(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         scaffoldBackgroundColor: Colors.white ,
@@ -26,7 +26,7 @@ class MyApp extends StatelessWidget {
           backgroundColor: Colors.transparent
         ),
       ),
-      home: const ProfileScreen(),
+      routerConfig: router,
     );
   }
 }
