@@ -1,40 +1,40 @@
+import 'dart:convert';
+
 import 'package:estin_losts/shared/models/post.dart';
 
 class User {
   final String id;
   final String name;
   final String email;
-  final String? phone;
-  final String? photoURL;
-  final String? bio;
+  final String imageURL;
   final List<Post> posts;
   final List<Post> claimedPosts;
   final List<Post> foundPosts;
 
   User({
-    required this.id,
+    this.id = "",
     required this.name,
     required this.email,
-    this.phone,
-    this.photoURL,
-    this.bio,
-    required this.posts,
-    required this.claimedPosts,
-    required this.foundPosts,
+    required this.imageURL,
+    this.posts = const [],
+    this.claimedPosts = const [],
+    this.foundPosts = const [],
   });
 
-  factory User.fromJson(Map<String, dynamic> json) {
+  factory User.fromMap(Map<String, dynamic> json) {
     return User(
       id: json['id'],
       name: json['name'],
       email: json['email'],
-      phone: json['phone'],
-      photoURL: json['photo_url'],
-      bio: json['bio'],
+      imageURL: json['photo_url'],
       posts: json['posts'],
       claimedPosts: json['claimed_posts'],
       foundPosts: json['found_posts'],
     );
+  }
+
+  factory User.fromJson(String json) {
+    return User.fromMap(jsonDecode(json));
   }
 }
 
@@ -57,7 +57,7 @@ class Claims {
     required this.user,
   });
 
-  factory Claims.fromJson(Map<String, dynamic> json) {
+  factory Claims.fromMap(Map<String, dynamic> json) {
     return Claims(
       id: json['id'],
       createdAt: DateTime.parse(json['created_at']),
@@ -89,7 +89,7 @@ class Founders {
     required this.user,
   });
 
-  factory Founders.fromJson(Map<String, dynamic> json) {
+  factory Founders.fromMap(Map<String, dynamic> json) {
     return Founders(
       id: json['id'],
       createdAt: DateTime.parse(json['created_at']),
