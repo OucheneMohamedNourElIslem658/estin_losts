@@ -97,10 +97,19 @@ func (ar *AuthRepository) OAuth(provider string, successURL string, failureURL s
 	}, nil
 }
 
-func (ar *AuthRepository) OAuthCallback(provider string, code string, context context.Context) (idToken, refreshToken *string, apiError *utils.APIError) {
+type AuthResponse struct {
+	IDToken      string
+	RefreshToken string
+	Name         string
+	ImageURL     string
+	Email        string
+	IsAdmin      bool
+}
+
+func (ar *AuthRepository) OAuthCallback(provider string, code string, context context.Context) (authResponse *AuthResponse, apiError *utils.APIError) {
 	ok := oauth.IsSupportedProvider(provider)
 	if !ok {
-		return nil, nil, &utils.APIError{
+		return nil, &utils.APIError{
 			StatusCode: http.StatusBadRequest,
 			Message:    "provider not supported",
 		}
@@ -111,7 +120,7 @@ func (ar *AuthRepository) OAuthCallback(provider string, code string, context co
 	oauthConfig := authProvider.Config
 	token, err := oauthConfig.Exchange(context, code)
 	if err != nil {
-		return nil, nil, &utils.APIError{
+		return nil, &utils.APIError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
 		}
@@ -120,7 +129,7 @@ func (ar *AuthRepository) OAuthCallback(provider string, code string, context co
 	client := oauthConfig.Client(context, token)
 	response, err := client.Get(authProvider.UserInfoURL)
 	if err != nil {
-		return nil, nil, &utils.APIError{
+		return nil, &utils.APIError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
 		}
@@ -129,13 +138,13 @@ func (ar *AuthRepository) OAuthCallback(provider string, code string, context co
 
 	userData := gin.H{}
 	if err := json.NewDecoder(response.Body).Decode(&userData); err != nil {
-		return nil, nil, &utils.APIError{
+		return nil, &utils.APIError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
 		}
 	}
 
-	var user models.User
+	user := &models.User{}
 
 	switch provider {
 	case "google":
@@ -146,10 +155,10 @@ func (ar *AuthRepository) OAuthCallback(provider string, code string, context co
 
 	var database = ar.database
 
-	var existingUser models.User
-	err = database.Where("email = ?", user.Email).First(&existingUser).Error
+	existingUser := &models.User{}
+	err = database.Where("email = ?", user.Email).First(existingUser).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
-		return nil, nil, &utils.APIError{
+		return nil, &utils.APIError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
 		}
@@ -159,9 +168,9 @@ func (ar *AuthRepository) OAuthCallback(provider string, code string, context co
 		existingUser.Email = user.Email
 		existingUser.FullName = user.FullName
 		existingUser.ImageURL = user.ImageURL
-		err = database.Save(&existingUser).Error
+		err = database.Save(existingUser).Error
 		if err != nil {
-			return nil, nil, &utils.APIError{
+			return nil, &utils.APIError{
 				StatusCode: http.StatusInternalServerError,
 				Message:    err.Error(),
 			}
@@ -171,7 +180,7 @@ func (ar *AuthRepository) OAuthCallback(provider string, code string, context co
 	if err == gorm.ErrRecordNotFound {
 		err = database.Create(&user).Error
 		if err != nil {
-			return nil, nil, &utils.APIError{
+			return nil, &utils.APIError{
 				StatusCode: http.StatusInternalServerError,
 				Message:    err.Error(),
 			}
@@ -181,7 +190,7 @@ func (ar *AuthRepository) OAuthCallback(provider string, code string, context co
 
 	createdRefreshToken, err := utils.CreateRefreshToken(existingUser.ID)
 	if err != nil {
-		return nil, nil, &utils.APIError{
+		return nil, &utils.APIError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
 		}
@@ -192,11 +201,18 @@ func (ar *AuthRepository) OAuthCallback(provider string, code string, context co
 		existingUser.IsAdmin,
 	)
 	if err != nil {
-		return nil, nil, &utils.APIError{
+		return nil, &utils.APIError{
 			StatusCode: http.StatusInternalServerError,
 			Message:    err.Error(),
 		}
 	}
 
-	return &createdIDToken, &createdRefreshToken, nil
+	return &AuthResponse{
+		IDToken:      createdIDToken,
+		RefreshToken: createdRefreshToken,
+		Name:         existingUser.FullName,
+		ImageURL:     existingUser.ImageURL,
+		Email:        existingUser.Email,
+		IsAdmin:      existingUser.IsAdmin,
+	}, nil
 }

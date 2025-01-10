@@ -93,11 +93,20 @@ func (authcontroller *AuthController) OAuthCallback(ctx *gin.Context) {
 
 	authRepository := authcontroller.authRepository
 
-	if idToken, refreshToken, err := authRepository.OAuthCallback(provider, code, ctx.Request.Context()); err != nil {
+	if authResponse, err := authRepository.OAuthCallback(provider, code, ctx.Request.Context()); err != nil {
 		failureURL := fmt.Sprintf("%v?message=%v", metadata.FailureURL, err.Message)
 		ctx.Redirect(http.StatusTemporaryRedirect, failureURL)
 	} else {
-		successURL := fmt.Sprintf("%v?id_token=%v&refresh_token=%v", metadata.SuccessURL, *idToken, *refreshToken)
+		successURL := fmt.Sprintf(
+			"%v?id_token=%v&refresh_token=%v&name=%v&image_url=%v&email=%v&is_admin=%v",
+			metadata.SuccessURL,
+			authResponse.IDToken,
+			authResponse.RefreshToken,
+			authResponse.Name,
+			authResponse.ImageURL,
+			authResponse.Email,
+			authResponse.IsAdmin,
+		)
 		ctx.Redirect(http.StatusTemporaryRedirect, successURL)
 	}
 }
