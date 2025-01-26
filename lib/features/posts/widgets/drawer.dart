@@ -1,6 +1,9 @@
+import 'package:estin_losts/services/auth.dart';
 import 'package:estin_losts/shared/constents/colors.dart';
 import 'package:estin_losts/shared/constents/fonts.dart';
+import 'package:estin_losts/shared/widgets/profile_pic.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class CustomDrawer extends StatelessWidget {
   const CustomDrawer({
@@ -17,20 +20,17 @@ class CustomDrawer extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Center(
+            Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  SizedBox(height: 20),
-                  SizedBox(
-                    height: 100,
-                    width: 100,
-                    child: CircleAvatar(),
-                  ),
-                  SizedBox(height: 10),
+                  const SizedBox(height: 20),
+                  const ProfilePic(),
+                  const SizedBox(height: 10),
                   Text(
-                    "Ouchene Mohamed",
-                    style: TextStyle(
+                    Auth.currentUser!.name,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
                       fontFamily: Fonts.airbndcereal,
                       fontWeight: FontWeight.w500,
                       color: CustomColors.black1,
@@ -38,15 +38,15 @@ class CustomDrawer extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    "m_ouchene@estin.dz",
-                    style: TextStyle(
+                    Auth.currentUser!.email,
+                    style: const TextStyle(
                       fontFamily: Fonts.airbndcereal,
                       fontWeight: FontWeight.w500,
                       color: CustomColors.grey1,
                       fontSize: 14
                     ),
                   ),
-                  SizedBox(height: 30),
+                  const SizedBox(height: 30),
                 ],
               ),
             ),
@@ -59,7 +59,7 @@ class CustomDrawer extends StatelessWidget {
                   DrawerTile(
                     label: "My Profile",
                     icon: Icons.person_outline_outlined,
-                    onPressed: (){},
+                    onPressed: () => context.push("/profile"),
                   ),
                   const SizedBox(height: 10),
                   DrawerTile(
@@ -97,7 +97,7 @@ class CustomDrawer extends StatelessWidget {
                   DrawerTile(
                     label: "Logout", 
                     icon: Icons.logout_rounded, 
-                    onPressed: (){}
+                    onPressed: () async => await Auth.signOut(context)
                   ),
                 ],
               ),

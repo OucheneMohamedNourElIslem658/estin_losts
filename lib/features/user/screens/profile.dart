@@ -1,8 +1,11 @@
 import 'package:estin_losts/features/posts/widgets/post_tile.dart';
+import 'package:estin_losts/services/auth.dart';
 import 'package:estin_losts/shared/constents/colors.dart';
 import 'package:estin_losts/shared/constents/fonts.dart';
 import 'package:estin_losts/shared/widgets/custom_tab_bar.dart';
+import 'package:estin_losts/shared/widgets/profile_pic.dart';
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -16,7 +19,7 @@ class ProfileScreen extends StatelessWidget {
             snap: true,
             floating: true,
             leading: IconButton(
-              onPressed: () {},
+              onPressed: () => context.pop(),
               icon: const Icon(
                 Icons.arrow_back_rounded, 
                 color: Colors.black,
@@ -43,24 +46,21 @@ class ProfileScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   children: [
-                    const SizedBox(
-                      height: 100,
-                      width: 100,
-                      child: CircleAvatar(),
-                    ),
+                    const ProfilePic(),
                     const SizedBox(height: 20),
-                    const Text(
-                      "John Doe",
-                      style: TextStyle(
+                    Text(
+                      Auth.currentUser!.name,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
                         color: CustomColors.black1,
                         fontSize: 24,
                         fontFamily: Fonts.airbndcereal,
                         fontWeight: FontWeight.w500
                       ),
                     ),
-                    const Text(
-                      "m_ouchene@estin.dz",
-                      style: TextStyle(
+                    Text(
+                      Auth.currentUser!.email,
+                      style: const TextStyle(
                         color: CustomColors.grey1,
                         fontSize: 15,
                         fontFamily: Fonts.airbndcereal,

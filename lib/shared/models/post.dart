@@ -19,7 +19,7 @@ class Post {
   final bool? foundByUser;
   final String userID;
   final User? user;
-  final List<PostImage> images;
+  final List<PostImage>? images;
   final int? claimersCount;
   final List<User> claimers;
   final int? foundersCount;

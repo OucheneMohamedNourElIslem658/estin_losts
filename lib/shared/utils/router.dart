@@ -1,18 +1,12 @@
-import 'dart:async';
-
 import 'package:estin_losts/features/auth/screens/auth.dart';
 import 'package:estin_losts/features/posts/screens/posts.dart';
-import 'package:estin_losts/screens/landing.dart';
+import 'package:estin_losts/features/user/screens/profile.dart';
 import 'package:estin_losts/services/auth.dart';
 import 'package:go_router/go_router.dart';
 
 final router = GoRouter(
-  initialLocation: "/landing",
+  initialLocation: Auth.currentUser == null ? "/auth" : "/posts",
   routes: [
-    GoRoute(
-      path: "/landing",
-      builder: (context, state) => const LandingScreen(),
-    ),
     GoRoute(
       path: '/auth',
       builder: (context, state) => const AuthScreen(),
@@ -22,6 +16,12 @@ final router = GoRouter(
       builder: (context, state) {
         Auth.storeCurrentUser(uri: state.uri);
         return const PostsScreen();
+      },
+    ),
+    GoRoute(
+      path: '/profile',
+      builder: (context, state) {
+        return const ProfileScreen();
       },
     )
   ]
