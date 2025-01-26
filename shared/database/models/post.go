@@ -30,7 +30,7 @@ type Post struct {
 	FoundByUser       *bool      `gorm:"-:migration;->" json:"found_by_user,omitempty"`
 	UserID            string     `json:"user_id"`
 	User              *User      `json:"user,omitempty"`
-	Images            []Image    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"images,omitempty"`
+	Images            []Image    `gorm:"constraint:OnUpdate:CASCADE,OnDelete:CASCADE" json:"images"`
 	ClaimersCount     *uint      `gorm:"-:migration;->" json:"claimers_count,omitempty"`
 	Claimers          []User     `gorm:"many2many:claims" json:"claimers,omitempty"`
 	FoundersCount     *uint      `gorm:"-:migration;->" json:"founders_count,omitempty"`

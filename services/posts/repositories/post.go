@@ -15,15 +15,15 @@ import (
 )
 
 type PostRepository struct {
-	database    *gorm.DB
-	filestorage *filestorage.FileStorage
+	database               *gorm.DB
+	filestorage            *filestorage.FileStorage
 	notificationRepository *notificationsRepositories.NotificationRepository
 }
 
 func NewPostRepository() *PostRepository {
 	return &PostRepository{
-		database:    database.Instance,
-		filestorage: filestorage.Instance,
+		database:               database.Instance,
+		filestorage:            filestorage.Instance,
 		notificationRepository: notificationsRepositories.NewNotificationRepository(),
 	}
 }
@@ -257,6 +257,8 @@ func (pr *PostRepository) GetPosts(filter GetPostsDTO) (posts *PagesData, apiErr
 		}
 	}
 
+	query.Preload("Images")
+	
 	query.Order("created_at DESC")
 
 	var totalPosts int64
@@ -385,8 +387,8 @@ func (pr *PostRepository) ClaimPost(userID, postID string) (apiError *utils.APIE
 	}
 
 	err = database.Create(&models.Claims{
-		PostID:       postID,
-		UserID:       userID,
+		PostID: postID,
+		UserID: userID,
 	}).Error
 
 	if err != nil {
@@ -497,8 +499,8 @@ func (pr *PostRepository) FoundPost(userID, postID string) (apiError *utils.APIE
 	}
 
 	err = database.Create(&models.Founds{
-		PostID:       postID,
-		UserID:       userID,
+		PostID: postID,
+		UserID: userID,
 	}).Error
 
 	if err != nil {
