@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"fmt"
 	"mime/multipart"
 	"net/http"
 	"strings"
@@ -35,7 +36,7 @@ type CreatePostDTO struct {
 	LocationLatitude  *float64                `form:"location_latitude" binding:"omitempty,required_with=LocationLongitude,min=-90,max=90"`
 	LocationLongitude *float64                `form:"location_longitude" binding:"omitempty,required_with=LocationLatitude,min=-180,max=180"`
 	Type              string                  `form:"type" binding:"required,oneof=lost found"`
-	Images            []*multipart.FileHeader `form:"images" binding:"required,max=3,dive,image"`
+	Images            []*multipart.FileHeader `form:"images" binding:"max=3,dive,image"`
 }
 
 func (pr *PostRepository) CreatePost(userID string, dto CreatePostDTO) (apiError *utils.APIError) {
@@ -192,10 +193,10 @@ type GetPostsDTO struct {
 	LocationLatitude       *float64               `form:"location_latitude" binding:"omitempty,required_with=LocationLongitude,min=-90,max=90"`
 	LocationLongitude      *float64               `form:"location_longitude" binding:"omitempty,required_with=LocationLatitude,min=-180,max=180"`
 	AppendWith             string                 `form:"append_with"`
-	HasBeenFound           *bool                  `form:"has_been_found"`
-	HasBeenDelivered       *bool                  `form:"has_been_delivered"`
-	PageSize               int                    `form:"page_size,default=10" binding:"min=1"`
-	PageNumber             int                    `form:"page_number,default=1" binding:"min=1"`
+	// HasBeenFound           *bool                  `form:"has_been_found" binding:"omitempty"`
+	// HasBeenDelivered       *bool                  `form:"has_been_delivered" binding:"omitempty"`
+	PageSize   int `form:"page_size,default=10" binding:"min=1"`
+	PageNumber int `form:"page_number,default=1" binding:"min=1"`
 }
 
 type PagesData struct {
@@ -208,6 +209,19 @@ type PagesData struct {
 
 func (pr *PostRepository) GetPosts(filter GetPostsDTO) (posts *PagesData, apiError *utils.APIError) {
 	database := pr.database
+
+	fmt.Printf(
+		"content: %s, type: %s, user_id: %s, claimed_or_found_by_user_id: %s, append_with: %s, page_size: %d, page_number: %d\n",
+		filter.Content,
+		filter.Type,
+		filter.UserID,
+		filter.ClaimedOrFoundByUserID,
+		filter.AppendWith,
+		// *filter.HasBeenFound,
+		// *filter.HasBeenDelivered,
+		filter.PageSize,
+		filter.PageNumber,
+	)
 
 	query := database.Model(&models.Post{}).Select("posts.*, COUNT(DISTINCT claims.user_id) AS claimers_count, COUNT(DISTINCT founds.user_id) AS founders_count").
 		Joins("LEFT JOIN claims ON posts.id = claims.post_id").
@@ -232,23 +246,24 @@ func (pr *PostRepository) GetPosts(filter GetPostsDTO) (posts *PagesData, apiErr
 		}
 	}
 
-	if filter.LocationLatitude != nil && filter.LocationLongitude != nil {
+	isLocationProvided := filter.LocationLatitude != nil && filter.LocationLongitude != nil && *filter.LocationLatitude != 0 && *filter.LocationLongitude != 0
+
+	if isLocationProvided {
 		query.Where("location_latitude BETWEEN ? AND ?", *filter.LocationLatitude-0.1, *filter.LocationLatitude+0.1)
 		query.Where("location_longitude BETWEEN ? AND ?", *filter.LocationLongitude-0.1, *filter.LocationLongitude+0.1)
 	}
 
-	if filter.HasBeenFound != nil {
-		query.Where("has_been_found = ?", *filter.HasBeenFound)
-	}
+	// if filter.HasBeenFound != nil {
+	// 	query.Where("has_been_found = ?", *filter.HasBeenFound)
+	// }
 
-	if filter.HasBeenDelivered != nil {
-		query.Where("has_been_delivered = ?", *filter.HasBeenDelivered)
-	}
+	// if filter.HasBeenDelivered != nil {
+	// 	query.Where("has_been_delivered = ?", *filter.HasBeenDelivered)
+	// }
 
 	if filter.AppendWith != "" {
 		extentions := utils.GetValidExtentions(
 			filter.AppendWith,
-			"user",
 			"claimers",
 			"founders",
 		)
@@ -258,7 +273,9 @@ func (pr *PostRepository) GetPosts(filter GetPostsDTO) (posts *PagesData, apiErr
 	}
 
 	query.Preload("Images")
-	
+	query.Preload("User")
+
+
 	query.Order("created_at DESC")
 
 	var totalPosts int64
