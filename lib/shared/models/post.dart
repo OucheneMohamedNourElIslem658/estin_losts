@@ -11,7 +11,7 @@ class Post {
   final String? description;
   final double? locationLatitude;
   final double? locationLongitude;
-  final String? locationDescription;
+  final String locationDescription;
   final PostType type;
   final bool hasBeenFound;
   final bool hasBeenDelivered;
@@ -19,10 +19,10 @@ class Post {
   final bool? foundByUser;
   final String userID;
   final User? user;
-  final List<PostImage>? images;
-  final int? claimersCount;
+  final List<PostImage> images;
+  final int claimersCount;
   final List<User> claimers;
-  final int? foundersCount;
+  final int foundersCount;
   final List<User> founders;
 
   Post({
@@ -33,7 +33,7 @@ class Post {
     this.description,
     this.locationLatitude,
     this.locationLongitude,
-    this.locationDescription,
+    this.locationDescription = "undefined",
     required this.type,
     required this.hasBeenFound,
     required this.hasBeenDelivered,
@@ -41,35 +41,38 @@ class Post {
     this.foundByUser,
     required this.userID,
     this.user,
-    required this.images,
-    this.claimersCount,
-    required this.claimers,
-    this.foundersCount,
-    required this.founders,
+    this.images = const [],
+    this.claimersCount = 0,
+    this.claimers = const [],
+    this.foundersCount = 0,
+    this.founders = const [],
   });
 
   factory Post.fromJson(Map<String, dynamic> json) {
+    print( User.fromMap(json['user']));
     return Post(
       id: json['id'],
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
       title: json['title'],
-      description: json['description'],
-      locationLatitude: json['location_latitude'],
-      locationLongitude: json['location_longitude'],
-      locationDescription: json['location_description'],
-      type: json['type'],
+      description: json['description'] ?? "",
+      locationLatitude: json['location_latitude'] ?? 0.0,
+      locationLongitude: json['location_longitude'] ?? 0.0,
+      locationDescription: json['location_description'] ?? "undefined",
+      type: json['type'] as String == 'lost' 
+        ? PostType.lost 
+        : PostType.found,  
       hasBeenFound: json['has_been_found'],
       hasBeenDelivered: json['has_been_delivered'],
       claimedByUser: json['claimed_by_user'],
       foundByUser: json['found_by_user'],
       userID: json['user_id'],
-      user: json['user'],
-      images: json['images'],
-      claimersCount: json['claimers_count'],
-      claimers: json['claimers'],
-      foundersCount: json['founders_count'],
-      founders: json['founders'],
+      user: json['user'] != null ? User.fromMap(json['user']) : null,
+      images: json['images'] ?? [],
+      claimersCount: json['claimers_count'] ?? 0,
+      claimers: json['claimers'] ?? [],
+      foundersCount: json['founders_count'] ?? 0,
+      founders: json['founders'] ?? [],
     );
   }
 }
@@ -90,7 +93,11 @@ class PostImage {
     required this.postID,
     this.post,
   }){
-    url = Utils.getRandomImageURL();
+    if (url  == "") {
+      url = Utils.getRandomImageURL();
+    } else {
+      url = "http://$url";
+    }
   }
 
   factory PostImage.fromJson(Map<String, dynamic> json) {

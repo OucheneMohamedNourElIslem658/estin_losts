@@ -1,4 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:estin_losts/services/posts.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -8,7 +9,12 @@ import '../../../shared/constents/posts_examples.dart';
 import '../../../shared/models/post.dart';
 
 class PostsList extends StatelessWidget {
-  const PostsList({super.key});
+  const PostsList({
+    super.key, 
+    this.postsType
+  });
+
+  final PostType? postsType;
 
   @override
   Widget build(BuildContext context) {
@@ -17,12 +23,31 @@ class PostsList extends StatelessWidget {
         padding: const EdgeInsets.only(
           bottom: 100
         ),
-        child: Column(
-          spacing: 10,
-          children: List.generate(
-            postsEamples.length, 
-            (index) => PostCard(post: postsEamples[index])
+        child: FutureBuilder(
+          future: Posts.getPosts(
+            context,
+            type: postsType
           ),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(),
+              );
+            }
+            if (snapshot.data == null) {
+              return const Center(
+                child: Text("No Posts Found"),
+              );  
+            }
+            final posts = snapshot.data!.posts;
+            return Column(
+              spacing: 10,
+              children: List.generate(
+                posts.length, 
+                (index) => PostCard(post: posts[index])
+              ),
+            );
+          }
         ),
       ),
     );
@@ -62,24 +87,24 @@ class PostCard extends StatelessWidget {
             trailing: TypeLabel(
               type: post.type,
             ),
-            title: const Text(
-              "Ouchene Mohamed",
-              style: TextStyle(
+            title: Text(
+              post.user!.name,
+              style: const TextStyle(
                 fontFamily: Fonts.airbndcereal,
                 fontWeight: FontWeight.w600
               ),
             ),
-            subtitle: const Row(
+            subtitle: Row(
               children: [
-                Icon(
+                const Icon(
                   Icons.location_on_outlined,
                   color: CustomColors.grey1,
                   size: 15,
                 ),
                 Expanded(
                   child: Text(
-                    "36 Guild Street London, UK ",
-                    style: TextStyle(
+                    post.locationDescription,
+                    style: const TextStyle(
                       fontFamily: Fonts.airbndcereal,
                       color: CustomColors.grey1,
                       fontSize: 12
@@ -95,7 +120,9 @@ class PostCard extends StatelessWidget {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(18),
               child: CachedNetworkImage(
-                imageUrl: postImageURL,
+                imageUrl: post.images.isEmpty
+                  ? postImageURL
+                  : post.images.first.url,
                 fit: BoxFit.cover,
                 alignment: Alignment.topCenter,
               ),
@@ -107,18 +134,18 @@ class PostCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Row(
+                Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Lost Not Book!",
-                      style: TextStyle(
+                      post.title,
+                      style:const TextStyle(
                         fontFamily: Fonts.airbndcereal,
                         fontWeight: FontWeight.w500,
                         fontSize: 18
                       ),
                     ),
-                    Text(
+                    const Text(
                       "2 days ago",
                       style: TextStyle(
                         fontFamily: Fonts.airbndcereal,
@@ -128,11 +155,11 @@ class PostCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                const Text(
-                  "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla eget nunc sed nisl. Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nulla eget nunc sed nisl.",
+                if (post.description != null) Text(
+                  post.description!,
                   maxLines: 3,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontFamily: Fonts.airbndcereal,
                     color: CustomColors.grey1,
                     fontSize: 13
@@ -142,7 +169,10 @@ class PostCard extends StatelessWidget {
                 ReactButtonButton(
                   onPressed: (){},
                   hasReacted: true,
-                  type: post.type
+                  type: post.type,
+                  count: post.type == PostType.found 
+                    ? post.claimersCount
+                    : post.foundersCount
                 ),
               ],
             ),
@@ -192,11 +222,13 @@ class ReactButtonButton extends StatelessWidget {
     required this.onPressed,
     this.hasReacted = false,
     required this.type,
+    this.count = 0
   });
 
   final VoidCallback onPressed;
   final bool hasReacted;
   final PostType type;
+  final int count;
 
   @override
   Widget build(BuildContext context) {
@@ -225,7 +257,7 @@ class ReactButtonButton extends StatelessWidget {
               ),
               const SizedBox(width: 5),
               Text(
-                "20",
+                count.toString(),
                 style: TextStyle(
                   fontFamily: Fonts.airbndcereal,
                   fontWeight: FontWeight.w600,
@@ -237,7 +269,7 @@ class ReactButtonButton extends StatelessWidget {
           ),
         ),
         const SizedBox(width:  10),
-        FirstClaims(color: primaryColor)
+        if (count >= 1) FirstClaims(color: primaryColor)
       ],
     );
   }

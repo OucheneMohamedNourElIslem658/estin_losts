@@ -32,7 +32,7 @@ class PostsScreen extends StatelessWidget {
               ),
               actions: [
                 IconButton(
-                  onPressed: () {}, 
+                  onPressed: () async {}, 
                   icon: SvgPicture.asset("assets/icons/search.svg")
                 ),
                 NotificationButton(onPressed: (){}),

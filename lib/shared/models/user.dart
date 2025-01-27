@@ -24,12 +24,12 @@ class User {
   factory User.fromMap(Map<String, dynamic> json) {
     return User(
       id: json['id'],
-      name: json['name'],
+      name: json['full_name'],
       email: json['email'],
-      imageURL: json['photo_url'],
-      posts: json['posts'],
-      claimedPosts: json['claimed_posts'],
-      foundPosts: json['found_posts'],
+      imageURL: json['image_url'],
+      posts: json['posts'] ?? [],
+      claimedPosts: json['claimed_posts'] ?? [],
+      foundPosts: json['found_posts'] ?? [],
     );
   }
 
