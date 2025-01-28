@@ -1,22 +1,25 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-import '../../services/auth.dart';
-
 class ProfilePic extends StatelessWidget {
   const ProfilePic({
     super.key,
+    required this.imageURL,
+    this.size = 100,
   });
+
+  final String imageURL;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(50),
       child: SizedBox(
-        height: 100,
-        width: 100,
+        height: size,
+        width: size,
         child: CachedNetworkImage(
-          imageUrl: Auth.currentUser!.imageURL,
+          imageUrl: imageURL,
           fit: BoxFit.cover,
         ),
       ),

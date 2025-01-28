@@ -6,12 +6,13 @@ enum PostType { lost, found }
 class Post {
   final String id;
   final DateTime createdAt;
+  final String? timeAgo;
   final DateTime updatedAt;
   final String title;
   final String? description;
   final double? locationLatitude;
   final double? locationLongitude;
-  final String locationDescription;
+  final String? locationDescription;
   final PostType type;
   final bool hasBeenFound;
   final bool hasBeenDelivered;
@@ -28,12 +29,13 @@ class Post {
   Post({
     required this.id,
     required this.createdAt,
+    this.timeAgo,
     required this.updatedAt,
     required this.title,
     this.description,
     this.locationLatitude,
     this.locationLongitude,
-    this.locationDescription = "undefined",
+    this.locationDescription,
     required this.type,
     required this.hasBeenFound,
     required this.hasBeenDelivered,
@@ -49,16 +51,16 @@ class Post {
   });
 
   factory Post.fromJson(Map<String, dynamic> json) {
-    print( User.fromMap(json['user']));
     return Post(
       id: json['id'],
       createdAt: DateTime.parse(json['created_at']),
+      timeAgo: json['time_ago'],
       updatedAt: DateTime.parse(json['updated_at']),
       title: json['title'],
       description: json['description'] ?? "",
       locationLatitude: json['location_latitude'] ?? 0.0,
       locationLongitude: json['location_longitude'] ?? 0.0,
-      locationDescription: json['location_description'] ?? "undefined",
+      locationDescription: json['location_description'],
       type: json['type'] as String == 'lost' 
         ? PostType.lost 
         : PostType.found,  
@@ -68,11 +70,17 @@ class Post {
       foundByUser: json['found_by_user'],
       userID: json['user_id'],
       user: json['user'] != null ? User.fromMap(json['user']) : null,
-      images: json['images'] ?? [],
+      images: ((json['images'] ?? []) as List<dynamic>)
+        .map((imageJson) => PostImage.fromJson(imageJson))
+        .toList(),
       claimersCount: json['claimers_count'] ?? 0,
-      claimers: json['claimers'] ?? [],
+      claimers: ((json['claimers'] ?? []) as List<dynamic>)
+        .map((imageJson) => User.fromMap(imageJson))
+        .toList(),
       foundersCount: json['founders_count'] ?? 0,
-      founders: json['founders'] ?? [],
+      founders: ((json['founders'] ?? []) as List<dynamic>)
+        .map((imageJson) => User.fromMap(imageJson))
+        .toList(),
     );
   }
 }

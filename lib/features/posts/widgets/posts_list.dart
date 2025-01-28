@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:estin_losts/services/posts.dart';
+import 'package:estin_losts/shared/widgets/profile_pic.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 
@@ -8,7 +9,7 @@ import '../../../shared/constents/fonts.dart';
 import '../../../shared/constents/posts_examples.dart';
 import '../../../shared/models/post.dart';
 
-class PostsList extends StatelessWidget {
+class PostsList extends StatefulWidget {
   const PostsList({
     super.key, 
     this.postsType
@@ -17,37 +18,48 @@ class PostsList extends StatelessWidget {
   final PostType? postsType;
 
   @override
+  State<PostsList> createState() => _PostsListState();
+}
+
+class _PostsListState extends State<PostsList> {
+  @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.only(
-          bottom: 100
-        ),
-        child: FutureBuilder(
-          future: Posts.getPosts(
-            context,
-            type: postsType
+    return RefreshIndicator(
+      onRefresh: () async {
+        setState(() {});
+      },
+      color: CustomColors.primaryBlue,
+      child: SingleChildScrollView(
+        child: Padding(
+          padding: const EdgeInsets.only(
+            bottom: 100
           ),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(),
+          child: FutureBuilder(
+            future: Posts.getPosts(
+              context,
+              type: widget.postsType
+            ),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              }
+              if (snapshot.data == null) {
+                return const Center(
+                  child: Text("No Posts Found"),
+                );  
+              }
+              final posts = snapshot.data!.posts;
+              return Column(
+                spacing: 10,
+                children: List.generate(
+                  posts.length, 
+                  (index) => PostCard(post: posts[index])
+                ),
               );
             }
-            if (snapshot.data == null) {
-              return const Center(
-                child: Text("No Posts Found"),
-              );  
-            }
-            final posts = snapshot.data!.posts;
-            return Column(
-              spacing: 10,
-              children: List.generate(
-                posts.length, 
-                (index) => PostCard(post: posts[index])
-              ),
-            );
-          }
+          ),
         ),
       ),
     );
@@ -83,7 +95,10 @@ class PostCard extends StatelessWidget {
         children: [
           ListTile(
             contentPadding: EdgeInsets.zero,
-            leading: const CircleAvatar(),
+            leading: ProfilePic(
+              imageURL: post.user!.imageURL,
+              size: 40,
+            ),
             trailing: TypeLabel(
               type: post.type,
             ),
@@ -96,14 +111,14 @@ class PostCard extends StatelessWidget {
             ),
             subtitle: Row(
               children: [
-                const Icon(
+                if (post.locationDescription != null) const Icon(
                   Icons.location_on_outlined,
                   color: CustomColors.grey1,
                   size: 15,
                 ),
-                Expanded(
+                if (post.locationDescription != null) Expanded(
                   child: Text(
-                    post.locationDescription,
+                    post.locationDescription!,
                     style: const TextStyle(
                       fontFamily: Fonts.airbndcereal,
                       color: CustomColors.grey1,
@@ -145,9 +160,9 @@ class PostCard extends StatelessWidget {
                         fontSize: 18
                       ),
                     ),
-                    const Text(
-                      "2 days ago",
-                      style: TextStyle(
+                    if (post.timeAgo != null) Text(
+                      post.timeAgo!,
+                      style: const TextStyle(
                         fontFamily: Fonts.airbndcereal,
                         color: CustomColors.grey1,
                         fontSize: 12
@@ -169,7 +184,7 @@ class PostCard extends StatelessWidget {
                 ReactButtonButton(
                   onPressed: (){},
                   hasReacted: true,
-                  type: post.type,
+                  post: post,
                   count: post.type == PostType.found 
                     ? post.claimersCount
                     : post.foundersCount
@@ -221,18 +236,18 @@ class ReactButtonButton extends StatelessWidget {
     super.key,
     required this.onPressed,
     this.hasReacted = false,
-    required this.type,
-    this.count = 0
+    required this.post,
+    this.count = 0,
   });
 
   final VoidCallback onPressed;
   final bool hasReacted;
-  final PostType type;
+  final Post post;
   final int count;
 
   @override
   Widget build(BuildContext context) {
-    final primaryColor = type == PostType.found 
+    final primaryColor = post.type == PostType.found 
       ? CustomColors.primaryBlue 
       : CustomColors.red1;
 
@@ -269,7 +284,10 @@ class ReactButtonButton extends StatelessWidget {
           ),
         ),
         const SizedBox(width:  10),
-        if (count >= 1) FirstClaims(color: primaryColor)
+        if (count >= 1) FirstClaims(
+          color: primaryColor,
+          post: post
+        )
       ],
     );
   }
@@ -278,18 +296,28 @@ class ReactButtonButton extends StatelessWidget {
 class FirstClaims extends StatelessWidget {
   const FirstClaims({
     super.key,
-    required this.color
+    required this.color,
+    required this.post
   });
 
   final Color color;
+  final Post post;
 
   @override
   Widget build(BuildContext context) {
-    final images = [
-      "https://img.freepik.com/photos-gratuite/mode-vie-emotions-gens-concept-decontracte-confiant-belle-femme-asiatique-souriante-bras-croises-poitrine-confiante-prete-aider-ecoute-ses-collegues-prenant-part-conversation_1258-59335.jpg",
-      "https://www.jordanharbinger.com/wp-content/uploads/2018/09/be-the-most-interesting-360x360.jpg",
-      "https://t3.ftcdn.net/jpg/02/43/12/34/360_F_243123463_zTooub557xEWABDLk0jJklDyLSGl2jrr.jpg",
-    ];
+    final reactors = post.type == PostType.found 
+      ? post.claimers
+      : post.founders;
+
+    final reactionsCount = post.type == PostType.found
+      ? post.claimersCount
+      : post.foundersCount;
+
+    final othersCount = reactionsCount - reactors.length;
+
+    final images = reactors
+      .map((reactor) => reactor.imageURL)
+      .toList();
 
     return Row(
       children: [
@@ -312,8 +340,8 @@ class FirstClaims extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 5),
-        Text(
-          "+20 others",
+        if (othersCount >= 1) Text(
+          "+$othersCount others",
           style: TextStyle(
             fontFamily: Fonts.airbndcereal,
             fontWeight: FontWeight.w600,

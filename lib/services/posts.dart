@@ -72,14 +72,14 @@ class Posts {
     switch (reponse.statusCode) {
       case 200:
         final bodyJson = json.decode(reponse.body);
+
         final postsJson = bodyJson["posts"] as List<dynamic>;
-        final posts = postsJson.map((postJson) {
-          // print(postJson["user"]);
-          final postImagesJson = postJson["images"] as List<dynamic>;
-          final postImages = postImagesJson.map((imageJson) => PostImage.fromJson(imageJson)).toList();
-          postJson["images"] = postImages;
+        final posts = postsJson
+        .map((postJson) {
           return Post.fromJson(postJson);
-        }).toList();
+        })
+        .toList();
+
         final totalPages = bodyJson["total_pages_number"] as int;
         final currentPage = bodyJson["page_number"] as int;
 

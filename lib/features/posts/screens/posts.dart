@@ -1,6 +1,7 @@
 import 'package:estin_losts/features/posts/widgets/drawer.dart';
 import 'package:estin_losts/shared/constents/colors.dart';
 import 'package:estin_losts/shared/constents/fonts.dart';
+import 'package:estin_losts/shared/models/post.dart';
 import 'package:estin_losts/shared/widgets/custom_tab_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
@@ -54,8 +55,12 @@ class PostsScreen extends StatelessWidget {
               physics: NeverScrollableScrollPhysics(),
               children: [
                 PostsList(),
-                PostsList(),
-                PostsList()
+                PostsList(
+                  postsType: PostType.lost,
+                ),
+                PostsList(
+                  postsType: PostType.found,
+                )
               ]
             ),
           ),

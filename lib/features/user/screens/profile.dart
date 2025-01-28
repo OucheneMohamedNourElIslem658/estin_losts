@@ -46,7 +46,9 @@ class ProfileScreen extends StatelessWidget {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   children: [
-                    const ProfilePic(),
+                    ProfilePic(
+                      imageURL: Auth.currentUser!.imageURL,
+                    ),
                     const SizedBox(height: 20),
                     Text(
                       Auth.currentUser!.name,

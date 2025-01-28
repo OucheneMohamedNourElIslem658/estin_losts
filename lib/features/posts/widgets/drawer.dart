@@ -25,7 +25,9 @@ class CustomDrawer extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const SizedBox(height: 20),
-                  const ProfilePic(),
+                  ProfilePic(
+                    imageURL: Auth.currentUser!.imageURL,
+                  ),
                   const SizedBox(height: 10),
                   Text(
                     Auth.currentUser!.name,
