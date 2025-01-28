@@ -1,7 +1,6 @@
 package repositories
 
 import (
-	"fmt"
 	"mime/multipart"
 	"net/http"
 	"strings"
@@ -192,7 +191,6 @@ type GetPostsDTO struct {
 	ClaimedOrFoundByUserID ClaimedOrFoundByUserID `form:"claimed_or_found_by_user_id" binding:"omitempty,required_with=user_id,oneof=claimed found"`
 	LocationLatitude       *float64               `form:"location_latitude" binding:"omitempty,required_with=LocationLongitude,min=-90,max=90"`
 	LocationLongitude      *float64               `form:"location_longitude" binding:"omitempty,required_with=LocationLatitude,min=-180,max=180"`
-	AppendWith             string                 `form:"append_with"`
 	// HasBeenFound           *bool                  `form:"has_been_found" binding:"omitempty"`
 	// HasBeenDelivered       *bool                  `form:"has_been_delivered" binding:"omitempty"`
 	PageSize   int `form:"page_size,default=10" binding:"min=1"`
@@ -210,20 +208,16 @@ type PagesData struct {
 func (pr *PostRepository) GetPosts(filter GetPostsDTO) (posts *PagesData, apiError *utils.APIError) {
 	database := pr.database
 
-	fmt.Printf(
-		"content: %s, type: %s, user_id: %s, claimed_or_found_by_user_id: %s, append_with: %s, page_size: %d, page_number: %d\n",
-		filter.Content,
-		filter.Type,
-		filter.UserID,
-		filter.ClaimedOrFoundByUserID,
-		filter.AppendWith,
-		// *filter.HasBeenFound,
-		// *filter.HasBeenDelivered,
-		filter.PageSize,
-		filter.PageNumber,
-	)
-
-	query := database.Model(&models.Post{}).Select("posts.*, COUNT(DISTINCT claims.user_id) AS claimers_count, COUNT(DISTINCT founds.user_id) AS founders_count").
+	query := database.Model(models.Post{}).Select("posts.*, COUNT(DISTINCT claims.user_id) AS claimers_count, COUNT(DISTINCT founds.user_id) AS founders_count, " +
+		"CASE " +
+		"WHEN posts.created_at > NOW() - INTERVAL '1 minute' THEN 'just now' " +
+		"WHEN posts.created_at > NOW() - INTERVAL '1 hour' THEN CONCAT(EXTRACT(MINUTE FROM NOW() - posts.created_at), ' minutes ago') " +
+		"WHEN posts.created_at > NOW() - INTERVAL '1 day' THEN CONCAT(EXTRACT(HOUR FROM NOW() - posts.created_at), ' hours ago') " +
+		"WHEN posts.created_at > NOW() - INTERVAL '1 week' THEN CONCAT(EXTRACT(DAY FROM NOW() - posts.created_at), ' days ago') " +
+		"WHEN posts.created_at > NOW() - INTERVAL '1 month' THEN CONCAT(EXTRACT(WEEK FROM NOW() - posts.created_at), ' weeks ago') " +
+		"WHEN posts.created_at > NOW() - INTERVAL '1 year' THEN CONCAT(EXTRACT(MONTH FROM NOW() - posts.created_at), ' months ago') " +
+		"ELSE CONCAT(EXTRACT(YEAR FROM NOW() - posts.created_at), ' years ago') " +
+		"END AS time_ago").
 		Joins("LEFT JOIN claims ON posts.id = claims.post_id").
 		Joins("LEFT JOIN founds ON posts.id = founds.post_id").
 		Group("posts.id")
@@ -261,20 +255,16 @@ func (pr *PostRepository) GetPosts(filter GetPostsDTO) (posts *PagesData, apiErr
 	// 	query.Where("has_been_delivered = ?", *filter.HasBeenDelivered)
 	// }
 
-	if filter.AppendWith != "" {
-		extentions := utils.GetValidExtentions(
-			filter.AppendWith,
-			"claimers",
-			"founders",
-		)
-		for _, extention := range extentions {
-			query.Preload(extention)
-		}
-	}
+	// preload the 3 first claims (if the post is lost) or the 3 first founds (if the post is found)
+
+	query.Preload("Claimers", func(db *gorm.DB) *gorm.DB {
+		return db.Limit(3)
+	}).Preload("Founders", func(db *gorm.DB) *gorm.DB {
+		return db.Limit(3)
+	})
 
 	query.Preload("Images")
 	query.Preload("User")
-
 
 	query.Order("created_at DESC")
 

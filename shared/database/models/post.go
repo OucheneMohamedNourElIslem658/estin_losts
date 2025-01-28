@@ -17,6 +17,7 @@ const (
 type Post struct {
 	ID                string     `gorm:"primaryKey" json:"id"`
 	CreatedAt         time.Time  `json:"created_at"`
+	TimeAgo           *string    `gorm:"-:migration;->" json:"time_ago,omitempty"`
 	UpdatedAt         time.Time  `json:"updated_at"`
 	Title             string     `json:"title"`
 	Description       *string    `json:"description"`
