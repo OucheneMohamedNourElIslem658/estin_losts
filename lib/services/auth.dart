@@ -34,17 +34,18 @@ class Auth {
       final userEmail = uri.queryParameters["email"] ?? "";
       final userImageURL = uri.queryParameters["image_url"] ?? "";
       final isAdmin = uri.queryParameters["is_admin"] ?? "";
+      final id = uri.queryParameters["id"] ?? "";
       final isUserInfoValid = 
+        id != "" &&
         idToken != "" && 
         refreshToken != "" &&
         userName != "" &&
         userEmail != "" &&
         userImageURL != "" &&
         isAdmin != "";
-
-      print(refreshToken);
       
       if (isUserInfoValid) {
+        _localStorage.write("id", id);
         _localStorage.write("id_token", idToken);
         _localStorage.write("refresh_token", refreshToken);
         _localStorage.write("full_name", userName);
@@ -83,7 +84,9 @@ class Auth {
       final userName = _localStorage.read("full_name");
       final email = _localStorage.read("email");
       final imageURL = _localStorage.read("image_url");
+      final id = _localStorage.read("id");
       return User(
+        id: id,
         name: userName, 
         email: email, 
         imageURL: imageURL

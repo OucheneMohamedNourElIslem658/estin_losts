@@ -1,16 +1,17 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:estin_losts/features/posts/controllers/posts.dart';
+import 'package:estin_losts/services/auth.dart';
+import 'package:estin_losts/services/posts.dart';
 import 'package:estin_losts/shared/widgets/profile_pic.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
-import 'package:get/get.dart';
+import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
 import '../../../shared/constents/colors.dart';
 import '../../../shared/constents/fonts.dart';
 import '../../../shared/constents/posts_examples.dart';
 import '../../../shared/models/post.dart';
 
-class PostsList extends StatelessWidget {
+class PostsList extends StatefulWidget {
   const PostsList({
     super.key, 
     this.postType
@@ -19,69 +20,101 @@ class PostsList extends StatelessWidget {
   final PostType? postType;
 
   @override
+  State<PostsList> createState() => _PostsListState();
+}
+
+class _PostsListState extends State<PostsList> {
+  static const _pageSize = 2;
+
+  final PagingController<int, Post> _pagingController = PagingController(firstPageKey: 1);
+
+  @override
+  void initState() {
+    super.initState();
+    _pagingController.addPageRequestListener((pageKey) {
+      _fetchPage(pageKey);
+    });
+  }
+
+  Future<void> _fetchPage(int pageKey) async {
+    try {
+      final result = await Posts.getPosts(
+        context, 
+        pageNumber: pageKey, 
+        type: widget.postType, 
+        pageSize: _pageSize
+      );
+      if (result == null) {
+        return;
+      }
+      final newItems = result.posts;
+      final isLastPage = newItems.length < _pageSize;
+      if (isLastPage) {
+        _pagingController.appendLastPage(newItems);
+      } else {
+        final nextPageKey = pageKey + newItems.length;
+        _pagingController.appendPage(newItems, nextPageKey);
+      }
+    } catch (error) {
+      _pagingController.error = error;
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final postController = Get.put(PostsController(), tag: 'main');
-
     return RefreshIndicator(
-      onRefresh: () async => await postController.refreshPosts(
-        context,
-        postType: postType
-      ),
-      color: CustomColors.primaryBlue,
-      child: GetBuilder<PostsController>(
-        tag: "main",
-        builder: (_) {
-          final posts = postController.posts;
-
-          if (postController.isLoading && (posts == null || posts.isEmpty)) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-
-          if (posts == null || posts.isEmpty) {
-            return const Center(
-              child: Text(
-                'Sorry!\nThere is no posts here :(',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: Fonts.airbndcereal,
-                  color: Colors.black
-                ),
-              ),
-            );
-          }
-
-          return NotificationListener(
-            onNotification: (ScrollNotification notification) {
-              if (notification.metrics.extentAfter < 500) {
-                postController.appendToPosts(
-                  context,
-                  postType: postType
-                );
-              }
-              return true;
-            },
-            child: SingleChildScrollView(
-              child: Padding(
-                padding: const EdgeInsets.only(
-                  bottom: 100
-                ),
-                child: Column(
-                  children: List.generate(
-                    posts.length, 
-                    (index) {
-                      return PostCard(
-                        post: posts[index]
-                      );
-                    }
-                  ),
-                ),
+      onRefresh: () => Future.sync(() => _pagingController.refresh()),
+      child: PagedListView<int, Post>(
+        pagingController: _pagingController, 
+        builderDelegate: PagedChildBuilderDelegate(
+          firstPageProgressIndicatorBuilder: (context) => const Center(
+            child: CircularProgressIndicator(
+              color: CustomColors.primaryBlue,
+            ),
+          ),
+          newPageProgressIndicatorBuilder: (context) => const Center(
+            child: CircularProgressIndicator(
+              color: CustomColors.primaryBlue,
+            ),
+          ),
+          firstPageErrorIndicatorBuilder: (context) => const Center(
+            child: Text(
+              'Error Occurred!',
+              style: TextStyle(
+                color: CustomColors.grey1,
+                fontFamily: Fonts.airbndcereal,
+                fontWeight: FontWeight.w500,
+                fontSize: 25
               ),
             ),
-          );
-        }
+          ),
+          newPageErrorIndicatorBuilder: (context) => const Center(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(
+                  Icons.warning_amber_rounded,
+                  color: CustomColors.grey1,
+                ),
+                SizedBox(width: 5),
+                Text(
+                  'Error Occured',
+                  style: TextStyle(
+                    color: CustomColors.grey1,
+                    fontFamily: Fonts.airbndcereal,
+                    fontSize: 15
+                  ),
+                ),
+              ],
+            ),
+          ),
+          itemBuilder: (context, item, index) {
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 20),
+              child: PostCard(post: item),
+            );
+          },
+        ),
       ),
     );
   }
@@ -201,8 +234,8 @@ class PostCard extends StatelessWidget {
                     fontSize: 13
                   ),
                 ),
-                const SizedBox(height: 10),
-                ReactButtonButton(
+                if (post.description != null) const SizedBox(height: 10),
+                if (post.userID != Auth.currentUser!.id) ReactButtonButton(
                   onPressed: (){},
                   hasReacted: true,
                   post: post,
@@ -213,7 +246,7 @@ class PostCard extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 10)
+          if (post.userID != Auth.currentUser!.id) const SizedBox(height: 10)
         ],
       ),
     );

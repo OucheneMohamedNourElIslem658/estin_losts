@@ -45,6 +45,7 @@ class Posts {
     bool? hasBeenFound,
     bool? hasBeenDelivered,
     int pageNumber = 1,
+    int pageSize = 10
   }) async {
     var uri = Uri.parse("$host$_route/");
 
@@ -57,12 +58,11 @@ class Posts {
       "location_longitude": locationLongitude?.toString() ?? "",
       "has_been_found": hasBeenFound?.toString() ?? "",
       "has_been_delivered": hasBeenDelivered?.toString() ?? "",
-      "page_size": "10",
+      "page_size": pageSize.toString(),
       "page_number": pageNumber.toString(),
     };
+    
     uri = uri.replace(queryParameters: queryParams);
-
-    try {
       final reponse = await http.get(
       uri,
       headers: {
@@ -90,19 +90,9 @@ class Posts {
           currentPage: currentPage,
         );
 
-      // case 400:
-      //   final ok = await Auth.refreshIdToken(context);
-      //   if (ok) {
-      //     await getPosts(context);
-      //   }
-      //   return null;
       default:
-      print(reponse.body);
-        return null;
-    }
-    } catch (e) {
-      print(e.toString());
-      return null;
+        final bodyJson = json.decode(reponse.body);
+        throw Exception(bodyJson["message"]);
     }
   }
 }
