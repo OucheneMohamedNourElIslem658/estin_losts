@@ -33,13 +33,18 @@ class PostsPaginationResult {
   });
 }
 
+enum UserPostRelation {
+  claimed,
+  found,
+}
+
 class Posts {
   static const _route = "/posts";
   static Future<PostsPaginationResult?> getPosts(BuildContext context, {
     String? query,
     PostType? type,
     String? userId,
-    String? claimedOrFoundByUserId,
+    UserPostRelation? claimedOrFoundByUserId,
     double? locationLatitude,
     double? locationLongitude,
     bool? hasBeenFound,
@@ -53,7 +58,7 @@ class Posts {
       "content": query ?? "",
       "type": type?.toString().split('.').last ?? "",
       "user_id": userId ?? "",
-      "claimed_or_found_by_user_id": claimedOrFoundByUserId ?? "",
+      "claimed_or_found_by_user_id": claimedOrFoundByUserId?.toString().split('.').last ?? "",
       "location_latitude": locationLatitude?.toString() ?? "",
       "location_longitude": locationLongitude?.toString() ?? "",
       "has_been_found": hasBeenFound?.toString() ?? "",
@@ -70,7 +75,8 @@ class Posts {
       }
     );
 
-    switch (reponse.statusCode) {
+    try {
+      switch (reponse.statusCode) {
       case 200:
         final bodyJson = json.decode(reponse.body);
 
@@ -92,7 +98,12 @@ class Posts {
 
       default:
         final bodyJson = json.decode(reponse.body);
+        print(bodyJson);
         throw Exception(bodyJson["message"]);
+    }
+    } catch (e) {
+      print(e.toString());
+      rethrow;
     }
   }
 }

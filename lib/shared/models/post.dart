@@ -1,4 +1,4 @@
-import 'package:estin_losts/shared/constents/utils.dart';
+import 'package:estin_losts/shared/utils/utils.dart';
 import 'package:estin_losts/shared/models/user.dart';
 
 enum PostType { lost, found }

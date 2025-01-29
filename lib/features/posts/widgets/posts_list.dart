@@ -1,9 +1,10 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:estin_losts/features/posts/controllers/posts_pagination.dart';
 import 'package:estin_losts/services/auth.dart';
-import 'package:estin_losts/services/posts.dart';
 import 'package:estin_losts/shared/widgets/profile_pic.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:get/get.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
 import '../../../shared/constents/colors.dart';
@@ -11,7 +12,7 @@ import '../../../shared/constents/fonts.dart';
 import '../../../shared/constents/posts_examples.dart';
 import '../../../shared/models/post.dart';
 
-class PostsList extends StatefulWidget {
+class PostsList extends StatelessWidget {
   const PostsList({
     super.key, 
     this.postType
@@ -20,102 +21,70 @@ class PostsList extends StatefulWidget {
   final PostType? postType;
 
   @override
-  State<PostsList> createState() => _PostsListState();
-}
-
-class _PostsListState extends State<PostsList> {
-  static const _pageSize = 2;
-
-  final PagingController<int, Post> _pagingController = PagingController(firstPageKey: 1);
-
-  @override
-  void initState() {
-    super.initState();
-    _pagingController.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey);
-    });
-  }
-
-  Future<void> _fetchPage(int pageKey) async {
-    try {
-      final result = await Posts.getPosts(
-        context, 
-        pageNumber: pageKey, 
-        type: widget.postType, 
-        pageSize: _pageSize
-      );
-      if (result == null) {
-        return;
-      }
-      final newItems = result.posts;
-      final isLastPage = newItems.length < _pageSize;
-      if (isLastPage) {
-        _pagingController.appendLastPage(newItems);
-      } else {
-        final nextPageKey = pageKey + newItems.length;
-        _pagingController.appendPage(newItems, nextPageKey);
-      }
-    } catch (error) {
-      _pagingController.error = error;
-    }
-  }
-
-  @override
   Widget build(BuildContext context) {
-    return RefreshIndicator(
-      onRefresh: () => Future.sync(() => _pagingController.refresh()),
-      child: PagedListView<int, Post>(
-        pagingController: _pagingController, 
-        builderDelegate: PagedChildBuilderDelegate(
-          firstPageProgressIndicatorBuilder: (context) => const Center(
-            child: CircularProgressIndicator(
-              color: CustomColors.primaryBlue,
-            ),
-          ),
-          newPageProgressIndicatorBuilder: (context) => const Center(
-            child: CircularProgressIndicator(
-              color: CustomColors.primaryBlue,
-            ),
-          ),
-          firstPageErrorIndicatorBuilder: (context) => const Center(
-            child: Text(
-              'Error Occurred!',
-              style: TextStyle(
-                color: CustomColors.grey1,
-                fontFamily: Fonts.airbndcereal,
-                fontWeight: FontWeight.w500,
-                fontSize: 25
+    final postsPaginationController = Get.put(
+      PostsPaginationController(context, postType: postType),
+      tag: postType.toString()
+    );
+
+    final pagingController = postsPaginationController.pagingController;
+
+    return GetBuilder<PostsPaginationController>(
+      tag: postType.toString(),
+      dispose: (_) => Get.delete<PostsPaginationController>(tag: postType.toString()),
+      builder: (_) {
+        return RefreshIndicator(
+          onRefresh: () => Future.sync(() => pagingController.refresh()),
+          child: PagedListView<int, Post>(
+            pagingController: pagingController, 
+            builderDelegate: PagedChildBuilderDelegate(
+              firstPageProgressIndicatorBuilder: (context) => const Center(
+                child: CircularProgressIndicator(),
               ),
-            ),
-          ),
-          newPageErrorIndicatorBuilder: (context) => const Center(
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.warning_amber_rounded,
-                  color: CustomColors.grey1,
-                ),
-                SizedBox(width: 5),
-                Text(
-                  'Error Occured',
+              newPageProgressIndicatorBuilder: (context) => const Center(
+                child: CircularProgressIndicator(),
+              ),
+              firstPageErrorIndicatorBuilder: (context) => const Center(
+                child: Text(
+                  'Error Occurred!',
                   style: TextStyle(
                     color: CustomColors.grey1,
                     fontFamily: Fonts.airbndcereal,
-                    fontSize: 15
+                    fontWeight: FontWeight.w500,
+                    fontSize: 25
                   ),
                 ),
-              ],
+              ),
+              newPageErrorIndicatorBuilder: (context) => const Center(
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.warning_amber_rounded,
+                      color: CustomColors.grey1,
+                    ),
+                    SizedBox(width: 5),
+                    Text(
+                      'Error Occured',
+                      style: TextStyle(
+                        color: CustomColors.grey1,
+                        fontFamily: Fonts.airbndcereal,
+                        fontSize: 15
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              itemBuilder: (context, item, index) {
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 20),
+                  child: PostCard(post: item),
+                );
+              },
             ),
           ),
-          itemBuilder: (context, item, index) {
-            return Padding(
-              padding: const EdgeInsets.only(bottom: 20),
-              child: PostCard(post: item),
-            );
-          },
-        ),
-      ),
+        );
+      }
     );
   }
 }

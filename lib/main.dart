@@ -1,3 +1,4 @@
+import 'package:estin_losts/shared/constents/colors.dart';
 import 'package:estin_losts/shared/utils/router.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
@@ -26,6 +27,9 @@ class MyApp extends StatelessWidget {
         ),
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.transparent
+        ),
+        progressIndicatorTheme: const ProgressIndicatorThemeData(
+          color: CustomColors.primaryBlue
         ),
       ),
       routerConfig: router,

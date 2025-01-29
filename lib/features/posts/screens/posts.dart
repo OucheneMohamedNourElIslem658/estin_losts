@@ -49,20 +49,17 @@ class PostsScreen extends StatelessWidget {
               ),
             )
           ], 
-          body: const Padding(
-            padding: EdgeInsets.only(top: 20),
-            child: TabBarView(
-              physics: NeverScrollableScrollPhysics(),
-              children: [
-                PostsList(),
-                PostsList(
-                  postType: PostType.lost,
-                ),
-                PostsList(
-                  postType: PostType.found,
-                )
-              ]
-            ),
+          body: const TabBarView(
+            physics: NeverScrollableScrollPhysics(),
+            children: [
+              PostsList(),
+              PostsList(
+                postType: PostType.lost,
+              ),
+              PostsList(
+                postType: PostType.found,
+              )
+            ]
           ),
         ),
       ),

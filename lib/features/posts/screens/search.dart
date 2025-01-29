@@ -5,7 +5,6 @@ import '../../../shared/constents/colors.dart';
 import '../../../shared/constents/fonts.dart';
 import '../widgets/custom_filter_ship.dart';
 import '../widgets/location_button.dart';
-import '../widgets/post_tile.dart';
 import '../widgets/select_time_button.dart';
 
 class SearchScreen extends StatelessWidget {
@@ -132,12 +131,12 @@ class CustomSearchAnchor extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 20),
-          Column(
-            children: List.generate(
-              10, 
-              (index) => const PostTile(),
-            )
-          )
+          // Column(
+          //   children: List.generate(
+          //     10, 
+          //     (index) => const PostTile(),
+          //   )
+          // )
         ],
       ),
     );

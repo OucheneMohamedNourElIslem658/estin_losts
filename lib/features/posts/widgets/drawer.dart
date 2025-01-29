@@ -21,35 +21,39 @@ class CustomDrawer extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Center(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const SizedBox(height: 20),
-                  ProfilePic(
-                    imageURL: Auth.currentUser!.imageURL,
-                  ),
-                  const SizedBox(height: 10),
-                  Text(
-                    Auth.currentUser!.name,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      fontFamily: Fonts.airbndcereal,
-                      fontWeight: FontWeight.w500,
-                      color: CustomColors.black1,
-                      fontSize: 20
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 20),
+                    ProfilePic(
+                      imageURL: Auth.currentUser!.imageURL,
                     ),
-                  ),
-                  Text(
-                    Auth.currentUser!.email,
-                    style: const TextStyle(
-                      fontFamily: Fonts.airbndcereal,
-                      fontWeight: FontWeight.w500,
-                      color: CustomColors.grey1,
-                      fontSize: 14
+                    const SizedBox(height: 10),
+                    Text(
+                      Auth.currentUser!.name,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontFamily: Fonts.airbndcereal,
+                        fontWeight: FontWeight.w500,
+                        color: CustomColors.black1,
+                        fontSize: 20
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 30),
-                ],
+                    Text(
+                      Auth.currentUser!.email,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontFamily: Fonts.airbndcereal,
+                        fontWeight: FontWeight.w500,
+                        color: CustomColors.grey1,
+                        fontSize: 14
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                  ],
+                ),
               ),
             ),
             Padding(
@@ -67,13 +71,13 @@ class CustomDrawer extends StatelessWidget {
                   DrawerTile(
                     label: "My Claims",
                     icon: Icons.back_hand_outlined,
-                    onPressed: (){},
+                    onPressed: () => context.push("/user-claims"),
                   ),
                   const SizedBox(height: 10),
                   DrawerTile(
                     label: "My Founds",
                     icon: Icons.visibility_outlined,
-                    onPressed: (){},
+                    onPressed: () => context.push("/user-founds"),
                   ),
                   const SizedBox(height: 10),
                   const Divider(),
