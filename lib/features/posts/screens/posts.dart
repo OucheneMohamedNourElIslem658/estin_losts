@@ -56,10 +56,10 @@ class PostsScreen extends StatelessWidget {
               children: [
                 PostsList(),
                 PostsList(
-                  postsType: PostType.lost,
+                  postType: PostType.lost,
                 ),
                 PostsList(
-                  postsType: PostType.found,
+                  postType: PostType.found,
                 )
               ]
             ),

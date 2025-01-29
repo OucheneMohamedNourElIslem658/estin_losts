@@ -44,6 +44,7 @@ class Posts {
     double? locationLongitude,
     bool? hasBeenFound,
     bool? hasBeenDelivered,
+    int pageNumber = 1,
   }) async {
     var uri = Uri.parse("$host$_route/");
 
@@ -57,7 +58,7 @@ class Posts {
       "has_been_found": hasBeenFound?.toString() ?? "",
       "has_been_delivered": hasBeenDelivered?.toString() ?? "",
       "page_size": "10",
-      "page_number": "1",
+      "page_number": pageNumber.toString(),
     };
     uri = uri.replace(queryParameters: queryParams);
 

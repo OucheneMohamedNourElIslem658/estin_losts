@@ -1,66 +1,87 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:estin_losts/services/posts.dart';
+import 'package:estin_losts/features/posts/controllers/posts.dart';
 import 'package:estin_losts/shared/widgets/profile_pic.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
+import 'package:get/get.dart';
 
 import '../../../shared/constents/colors.dart';
 import '../../../shared/constents/fonts.dart';
 import '../../../shared/constents/posts_examples.dart';
 import '../../../shared/models/post.dart';
 
-class PostsList extends StatefulWidget {
+class PostsList extends StatelessWidget {
   const PostsList({
     super.key, 
-    this.postsType
+    this.postType
   });
 
-  final PostType? postsType;
+  final PostType? postType;
 
-  @override
-  State<PostsList> createState() => _PostsListState();
-}
-
-class _PostsListState extends State<PostsList> {
   @override
   Widget build(BuildContext context) {
+    final postController = Get.put(PostsController(), tag: 'main');
+
     return RefreshIndicator(
-      onRefresh: () async {
-        setState(() {});
-      },
+      onRefresh: () async => await postController.refreshPosts(
+        context,
+        postType: postType
+      ),
       color: CustomColors.primaryBlue,
-      child: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.only(
-            bottom: 100
-          ),
-          child: FutureBuilder(
-            future: Posts.getPosts(
-              context,
-              type: widget.postsType
-            ),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(
-                  child: CircularProgressIndicator(),
+      child: GetBuilder<PostsController>(
+        tag: "main",
+        builder: (_) {
+          final posts = postController.posts;
+
+          if (postController.isLoading && (posts == null || posts.isEmpty)) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          if (posts == null || posts.isEmpty) {
+            return const Center(
+              child: Text(
+                'Sorry!\nThere is no posts here :(',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w600,
+                  fontFamily: Fonts.airbndcereal,
+                  color: Colors.black
+                ),
+              ),
+            );
+          }
+
+          return NotificationListener(
+            onNotification: (ScrollNotification notification) {
+              if (notification.metrics.extentAfter < 500) {
+                postController.appendToPosts(
+                  context,
+                  postType: postType
                 );
               }
-              if (snapshot.data == null) {
-                return const Center(
-                  child: Text("No Posts Found"),
-                );  
-              }
-              final posts = snapshot.data!.posts;
-              return Column(
-                spacing: 10,
-                children: List.generate(
-                  posts.length, 
-                  (index) => PostCard(post: posts[index])
+              return true;
+            },
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.only(
+                  bottom: 100
                 ),
-              );
-            }
-          ),
-        ),
+                child: Column(
+                  children: List.generate(
+                    posts.length, 
+                    (index) {
+                      return PostCard(
+                        post: posts[index]
+                      );
+                    }
+                  ),
+                ),
+              ),
+            ),
+          );
+        }
       ),
     );
   }
