@@ -232,11 +232,12 @@ func (pr *PostRepository) GetPosts(filter GetPostsDTO) (posts *PagesData, apiErr
 	}
 
 	if filter.UserID != "" {
-		query.Where("user_id = ?", filter.UserID)
 		if filter.ClaimedOrFoundByUserID == Claimed {
 			query.Where("claims.user_id = ?", filter.UserID)
 		} else if filter.ClaimedOrFoundByUserID == Found {
 			query.Where("founds.user_id = ?", filter.UserID)
+		} else {
+			query.Where("user_id = ?", filter.UserID)
 		}
 	}
 
