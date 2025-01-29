@@ -98,7 +98,7 @@ func (authcontroller *AuthController) OAuthCallback(ctx *gin.Context) {
 		ctx.Redirect(http.StatusTemporaryRedirect, failureURL)
 	} else {
 		successURL := fmt.Sprintf(
-			"%v?id_token=%v&refresh_token=%v&name=%v&image_url=%v&email=%v&is_admin=%v",
+			"%v?id_token=%v&refresh_token=%v&name=%v&image_url=%v&email=%v&is_admin=%v&id=%v",
 			metadata.SuccessURL,
 			authResponse.IDToken,
 			authResponse.RefreshToken,
@@ -106,6 +106,7 @@ func (authcontroller *AuthController) OAuthCallback(ctx *gin.Context) {
 			authResponse.ImageURL,
 			authResponse.Email,
 			authResponse.IsAdmin,
+			authResponse.ID,
 		)
 		ctx.Redirect(http.StatusTemporaryRedirect, successURL)
 	}

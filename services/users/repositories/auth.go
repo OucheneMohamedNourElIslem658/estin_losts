@@ -104,6 +104,7 @@ type AuthResponse struct {
 	ImageURL     string
 	Email        string
 	IsAdmin      bool
+	ID           string
 }
 
 func (ar *AuthRepository) OAuthCallback(provider string, code string, context context.Context) (authResponse *AuthResponse, apiError *utils.APIError) {
@@ -150,7 +151,7 @@ func (ar *AuthRepository) OAuthCallback(provider string, code string, context co
 	case "google":
 		user.FullName = userData["name"].(string)
 		user.Email = userData["email"].(string)
-		user.ImageURL =  userData["picture"].(string)
+		user.ImageURL = userData["picture"].(string)
 	}
 
 	var database = ar.database
@@ -208,6 +209,7 @@ func (ar *AuthRepository) OAuthCallback(provider string, code string, context co
 	}
 
 	return &AuthResponse{
+		ID:           existingUser.ID,
 		IDToken:      createdIDToken,
 		RefreshToken: createdRefreshToken,
 		Name:         existingUser.FullName,
