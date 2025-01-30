@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/OucheneMohamedNourElIslem658/estin_losts/services/posts/repositories"
@@ -67,16 +68,11 @@ func (pc *PostsController) GetPosts(ctx *gin.Context) {
 }
 
 func (pc *PostsController) GetPost(ctx *gin.Context) {
-	var dto repositories.GetPostDTO
-	if err := ctx.ShouldBind(&dto); err != nil {
-		message := utils.ValidationErrorResponse(err, dto)
-		ctx.JSON(http.StatusBadRequest, message)
-		return
-	}
-
 	postID := ctx.Param("post_id")
 
-	post, apiError := pc.postsRepository.GetPost(postID, dto)
+	fmt.Println(postID)
+
+	post, apiError := pc.postsRepository.GetPost(postID)
 	if apiError != nil {
 		ctx.JSON(apiError.StatusCode, gin.H{
 			"error": apiError.Message,

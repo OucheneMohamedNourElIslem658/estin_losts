@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"mime/multipart"
 	"reflect"
 	"strings"
 	"time"
@@ -28,8 +27,6 @@ func ValidationErrorResponse(err error, dto any) gin.H {
 			case "oneof":
 				allowedValues := vErr.Param()
 				errors[jsonTag] = fmt.Sprintf("one of: %s", allowedValues)
-			case "image":
-				errors[jsonTag] = "not image"
 			case "object_time":
 				errors[jsonTag] = "invalid time: must be in the past and within the last year"
 			case "min":
@@ -66,16 +63,6 @@ func getJSONTag(v interface{}, fieldName string) string {
 	return tag
 }
 
-func validateImage(fl validator.FieldLevel) bool {
-	file := fl.Field().Interface().(multipart.FileHeader)
-	return isImage(&file)
-}
-
-func isImage(fileHeader *multipart.FileHeader) bool {
-	contentType := fileHeader.Header.Get("Content-Type")
-	return contentType == "image/jpeg" || contentType == "image/png"
-}
-
 func validateObjectTime(fl validator.FieldLevel) bool {
 	t := fl.Field().Interface().(time.Time)
 
@@ -91,7 +78,6 @@ func registerValidators() (err error) {
 	if v, ok := binding.Validator.Engine().(*validator.Validate); !ok {
 		return errors.New("validator initialization failed")
 	} else {
-		v.RegisterValidation("image", validateImage)
 		v.RegisterValidation("object_time", validateObjectTime)
 	}
 	return nil

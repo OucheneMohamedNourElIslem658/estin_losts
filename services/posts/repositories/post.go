@@ -1,6 +1,7 @@
 package repositories
 
 import (
+	"fmt"
 	"mime/multipart"
 	"net/http"
 	"strings"
@@ -35,13 +36,15 @@ type CreatePostDTO struct {
 	LocationLatitude  *float64                `form:"location_latitude" binding:"omitempty,required_with=LocationLongitude,min=-90,max=90"`
 	LocationLongitude *float64                `form:"location_longitude" binding:"omitempty,required_with=LocationLatitude,min=-180,max=180"`
 	Type              string                  `form:"type" binding:"required,oneof=lost found"`
-	Images            []*multipart.FileHeader `form:"images" binding:"max=3,dive,image"`
+	Images            []*multipart.FileHeader `form:"images" binding:"max=3"`
 }
 
 func (pr *PostRepository) CreatePost(userID string, dto CreatePostDTO) (apiError *utils.APIError) {
 	database := pr.database
 
 	filestorage := filestorage.Instance
+
+	fmt.Println(dto.Images)
 
 	images, err := filestorage.UploadFiles(dto.Images, "posts", nil)
 	if err != nil {
@@ -237,7 +240,7 @@ func (pr *PostRepository) GetPosts(filter GetPostsDTO) (posts *PagesData, apiErr
 		} else if filter.ClaimedOrFoundByUserID == Found {
 			query.Where("founds.user_id = ?", filter.UserID)
 		} else {
-			query.Where("user_id = ?", filter.UserID)
+			query.Where("posts.user_id = ?", filter.UserID)
 		}
 	}
 
@@ -303,11 +306,7 @@ func (pr *PostRepository) GetPosts(filter GetPostsDTO) (posts *PagesData, apiErr
 	}, nil
 }
 
-type GetPostDTO struct {
-	AppendWith string `form:"append_with"`
-}
-
-func (pr *PostRepository) GetPost(postID string, filter GetPostDTO) (post *models.Post, apiError *utils.APIError) {
+func (pr *PostRepository) GetPost(postID string) (post *models.Post, apiError *utils.APIError) {
 	database := pr.database
 
 	query := database.
@@ -317,18 +316,10 @@ func (pr *PostRepository) GetPost(postID string, filter GetPostDTO) (post *model
 		Group("posts.id").
 		Where("posts.id = ?", postID)
 
-	if filter.AppendWith != "" {
-		extentions := utils.GetValidExtentions(
-			filter.AppendWith,
-			"user",
-			"claimers",
-			"founders",
-		)
-		for _, extention := range extentions {
-			query.Preload(extention)
-		}
-
-	}
+	query.Preload("User")
+	query.Preload("Images")
+	query.Preload("Founders")
+	query.Preload("Claimers")
 
 	var postToReturn models.Post
 
