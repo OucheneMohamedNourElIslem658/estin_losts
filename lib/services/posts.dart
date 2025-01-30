@@ -150,8 +150,153 @@ class Posts {
     switch (streamedResponse.statusCode) {
       case 201:
         return;
+      case 401:
+        final ok = await Auth.refreshIdToken(context);
+        if (ok) {
+          return addPost(
+            context,
+            title: title,
+            type: type,
+            description: description,
+            locationDescription: locationDescription,
+            images: images,
+          );
+        }
+        return;
       default:
         final bodyJson = json.decode(response);
+        throw Exception(bodyJson["message"]);
+    }
+  }
+
+  static Future<Post?> getPost(String id) async {
+    final uri = Uri.parse("$host$_route/$id");
+
+    final response = await http.get(
+      uri,
+      headers: {
+        "Content-Type": "application/json",
+      }
+    );
+
+    switch (response.statusCode) {
+      case 200:
+        final bodyJson = json.decode(response.body);
+        return Post.fromJson(bodyJson);
+      default:
+        final bodyJson = json.decode(response.body);
+        throw Exception(bodyJson["message"]);
+    }
+  }
+
+  static Future<void> claimPost(BuildContext context, String id) async {
+    final uri = Uri.parse("$host$_route/$id/claim");
+
+    final response = await http.post(
+      uri,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer ${Auth.idToken}"
+      }
+    );
+
+    final body = response.body;
+
+    switch (response.statusCode) {
+      case 200:
+        return;
+      case 401:
+        final ok = await Auth.refreshIdToken(context);
+        if (ok) {
+          return claimPost(context, id);
+        }
+        return;
+      default:
+        final bodyJson = json.decode(body);
+        throw Exception(bodyJson["message"]);
+    }
+  }
+
+  static Future<void> foundPost(BuildContext context, String id) async {
+    final uri = Uri.parse("$host$_route/$id/found");
+
+    final response = await http.post(
+      uri,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer ${Auth.idToken}"
+      }
+    );
+
+    final body = response.body;
+
+    switch (response.statusCode) {
+      case 200:
+        return;
+      case 401:
+        final ok = await Auth.refreshIdToken(context);
+        if (ok) {
+          return foundPost(context, id);
+        }
+        return;
+      default:
+        final bodyJson = json.decode(body);
+        throw Exception(bodyJson["message"]);
+    }
+  }
+
+  static Future<void> unclaimPost(BuildContext context, String id) async {
+    final uri = Uri.parse("$host$_route/$id/unclaim");
+
+    final response = await http.delete(
+      uri,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer ${Auth.idToken}"
+      }
+    );
+
+    final body = response.body;
+
+    switch (response.statusCode) {
+      case 200:
+        return;
+      case 401:
+        final ok = await Auth.refreshIdToken(context);
+        if (ok) {
+          return unclaimPost(context, id);
+        }
+        return;
+      default:
+        final bodyJson = json.decode(body);
+        throw Exception(bodyJson["message"]);
+    }
+  }
+
+  static Future<void> unfoundPost(BuildContext context, String id) async {
+    final uri = Uri.parse("$host$_route/$id/unfound");
+
+    final response = await http.delete(
+      uri,
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Bearer ${Auth.idToken}"
+      }
+    );
+
+    final body = response.body;
+
+    switch (response.statusCode) {
+      case 200:
+        return;
+      case 401:
+        final ok = await Auth.refreshIdToken(context);
+        if (ok) {
+          return unfoundPost(context, id);
+        }
+        return;
+      default:
+        final bodyJson = json.decode(body);
         throw Exception(bodyJson["message"]);
     }
   }

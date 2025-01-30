@@ -6,6 +6,7 @@ import 'package:estin_losts/shared/constents/colors.dart';
 import 'package:estin_losts/shared/constents/fonts.dart';
 import 'package:estin_losts/shared/models/post.dart';
 import 'package:estin_losts/shared/screens/image.dart';
+import 'package:estin_losts/shared/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:go_router/go_router.dart';
@@ -241,14 +242,10 @@ class ImagesList extends StatelessWidget {
               return SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: OutlinedButton(
-                  onPressed: () => Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) => ImageScreen(
-                        image: FileImage(image),
-                        name: image.path.split('/').last,
-                      )
-                    )
-                  ),
+                  onPressed: () => Utils.pushScreen(context, ImageScreen(
+                    image: FileImage(image),
+                    name: image.path.split('/').last,
+                  )),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 6),
                     side: BorderSide(

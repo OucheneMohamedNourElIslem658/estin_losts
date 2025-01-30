@@ -1,64 +1,40 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:estin_losts/features/posts/controllers/post_bottom_bar.dart';
 import 'package:estin_losts/features/posts/widgets/posts_list.dart';
+import 'package:estin_losts/services/auth.dart';
+import 'package:estin_losts/services/posts.dart';
 import 'package:estin_losts/shared/constents/colors.dart';
 import 'package:estin_losts/shared/constents/fonts.dart';
-import 'package:estin_losts/shared/constents/posts_examples.dart';
 import 'package:estin_losts/shared/models/post.dart';
+import 'package:estin_losts/shared/screens/image.dart';
+import 'package:estin_losts/shared/utils/utils.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:go_router/go_router.dart';
 
-class PostScreen extends StatefulWidget {
-  const PostScreen({super.key});
+class PostScreen extends StatelessWidget {
+  const PostScreen({
+    super.key,
+    required this.postID
+  });
 
-  @override
-  State<PostScreen> createState() => _PostScreenState();
-}
-
-class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateMixin {
-  late AnimationController bottomBarAnimationController;
-  late Animation<double> bottomBarAnimation;
-  late ScrollController scrollController;
-
-  void _initAnimation() {
-    bottomBarAnimationController = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 200)
-    );
-
-    bottomBarAnimation = Tween<double>(
-      begin: 0,
-      end: 1
-    ).animate(bottomBarAnimationController);
-
-    scrollController = ScrollController();
-    scrollController.addListener(() {
-      final isInTopOfScroll = scrollController.offset <= 0;
-      _toggleBottomBar(isInTopOfScroll);
-    });
-  }
-
-  void _toggleBottomBar(bool isInTopOfScroll) {
-    if (!isInTopOfScroll) {
-        bottomBarAnimationController.forward();
-    } else {
-        bottomBarAnimationController.reverse();
-    }
-  }
-
-  @override
-  void initState() {
-    _initAnimation();
-    super.initState();
-  }
+  final String postID;
 
   @override
   Widget build(BuildContext context) {
+    final postBottomBarController = Get.put(PostBottomBarController());
+
+    final scrollController = postBottomBarController.scrollController;
+    final bottomBarAnimationController = postBottomBarController.bottomBarAnimationController;
+    final bottomBarAnimation = postBottomBarController.bottomBarAnimation;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
         leading: IconButton(
-          onPressed: (){}, 
+          onPressed: () => context.pop(), 
           icon: const Icon(
             Icons.arrow_back_rounded,
             color: Colors.white,
@@ -73,38 +49,81 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
           ),
         ),
       ),
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            controller: scrollController,
-            child: const Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                PostImagesSlider(),
-                SizedBox(height: 20),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 30),
-                  child: PostInfo(),
-                )
-              ],
-            ),
-          ),
-          AnimatedBuilder(
-            animation: bottomBarAnimationController,
-            builder: (context, child) {
-              final opacity = 1 - bottomBarAnimation.value;
-              return Positioned(
-                left: 0,
-                right: 0,
-                bottom: -bottomBarAnimation.value * 150,
-                child: Opacity(
-                  opacity: opacity,
-                  child: const ClaimBottomBar()
-                ),
+      body: GetBuilder<PostBottomBarController>(
+        dispose: (_) => Get.delete<PostBottomBarController>(),
+        builder: (_) {
+          return FutureBuilder<Post?>(
+            future: Posts.getPost(postID),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const LinearProgressIndicator();
+              }
+          
+              if (snapshot.data == null) {
+                return const  Text(
+                  'Error Occurred!',
+                  style: TextStyle(
+                    color: CustomColors.grey1,
+                    fontFamily: Fonts.airbndcereal,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 25
+                  ),
+                );
+              }
+          
+              final post = snapshot.data;
+          
+              return Stack(
+                children: [
+                  Positioned.fill(
+                    child: SingleChildScrollView(
+                      controller: scrollController,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          PostImagesSlider(
+                            images: post!.images,
+                          ),
+                          const SizedBox(height: 20),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 30),
+                            child: PostInfo(
+                              post: post
+                            ),
+                          )
+                        ],
+                      ),
+                    ),
+                  ),
+                  if (post.userID != Auth.currentUser!.id) AnimatedBuilder(
+                    animation: bottomBarAnimationController,
+                    builder: (context, child) {
+                      final opacity = 1 - bottomBarAnimation.value;
+                      return Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: -bottomBarAnimation.value * 150,
+                        child: Opacity(
+                          opacity: opacity,
+                          child: ClaimBottomBar(
+                            onPressed: () async {
+                              // if (post.type == PostType.found) {
+                              //   await Posts.claimPost(context, post.id);
+                              // } else {
+                              //   await Posts.foundPost(context, post.id);
+                              // }
+                            },
+                            post: post,
+                          )
+                        ),
+                      );
+                    }
+                  )
+                ],
               );
             }
-          )
-        ],
+          );
+        }
       ),
     );
   }
@@ -113,7 +132,10 @@ class _PostScreenState extends State<PostScreen> with SingleTickerProviderStateM
 class PostImagesSlider extends StatefulWidget {
   const PostImagesSlider({
     super.key,
+    required this.images
   });
+
+  final List<PostImage> images;
 
   @override
   State<PostImagesSlider> createState() => _PostImagesSliderState();
@@ -127,11 +149,6 @@ class _PostImagesSliderState extends State<PostImagesSlider> {
       currentIndex = index;
     });
   }
-
-  final List<String> imagesList = List.generate(
-    3, 
-    (index) => postImageURL
-  );
 
   @override
   Widget build(BuildContext context) {
@@ -153,7 +170,8 @@ class _PostImagesSliderState extends State<PostImagesSlider> {
               options: CarouselOptions(
                 height: double.maxFinite,
                 viewportFraction: 1,
-                autoPlay: true,
+                autoPlay: widget.images.length > 1,
+                scrollPhysics: widget.images.length > 1 ? null : const NeverScrollableScrollPhysics(),
                 autoPlayInterval: const Duration(seconds: 5),
                 autoPlayAnimationDuration: const Duration(milliseconds: 800),
                 autoPlayCurve: Curves.fastOutSlowIn,
@@ -161,11 +179,18 @@ class _PostImagesSliderState extends State<PostImagesSlider> {
                 onPageChanged: (index, reason) => _onPageChanged(index, reason),
               ),
               items: List.generate(
-                imagesList.length, 
+                widget.images.length, 
                 (index) {
-                  return CachedNetworkImage(
-                    imageUrl: imagesList[index],
-                    fit: BoxFit.cover,
+                  final image = widget.images[index];
+                  return GestureDetector(
+                    onTap: () => Utils.pushScreen(context, ImageScreen(
+                      image: NetworkImage(image.url),
+                      name: widget.images[index].name,
+                    )),
+                    child: CachedNetworkImage(
+                      imageUrl: widget.images[index].url,
+                      fit: BoxFit.cover,
+                    ),
                   );
                 }
               )
@@ -179,7 +204,7 @@ class _PostImagesSliderState extends State<PostImagesSlider> {
                 mainAxisSize: MainAxisSize.min,
                 spacing: 5,
                 children: List.generate(
-                  imagesList.length, 
+                  widget.images.length, 
                   (index) {
                     final double size = index == currentIndex ? 13 : 10;
                     final Color color = index == currentIndex 
@@ -209,7 +234,10 @@ class _PostImagesSliderState extends State<PostImagesSlider> {
 class PostInfo extends StatelessWidget {
   const PostInfo({
     super.key,
+    required this.post
   });
+
+  final Post post;
 
   @override
   Widget build(BuildContext context) {
@@ -220,30 +248,24 @@ class PostInfo extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              postsEamples.first.title,
+              post.title,
               style: const TextStyle(
                 fontFamily: Fonts.airbndcereal,
                 fontSize: 35,
                 color: CustomColors.black1
               ),
             ),
-            const TypeLabel(type: PostType.found)
+            TypeLabel(type: post.type)
           ],
         ),
         const SizedBox(height: 20),
-        const InfoTile(
-          title: "14 December, 2021",
-          subtitle: "14 December, 2021",
+        InfoTile(
+          title: "Time",
+          subtitle: Utils.formatDate1(post.createdAt),
           icon: CupertinoIcons.clock_fill,
         ),
-        const SizedBox(height: 10),
-        const InfoTile(
-          title: "14 December, 2021",
-          subtitle: "14 December, 2021",
-          icon: Icons.location_on_rounded,
-        ),
         const SizedBox(height: 20),
-        const Text(
+        if (post.description != null) const Text(
           "Description",
           style: TextStyle(
             fontFamily: Fonts.airbndcereal,
@@ -253,8 +275,26 @@ class PostInfo extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 15),
-        Text(
-          postsEamples.first.description! * 20,
+        if (post.description != null) Text(
+          post.description!,
+          style: const TextStyle(
+            fontFamily: Fonts.airbndcereal,
+            fontSize: 16
+          ),
+        ),
+        const SizedBox(height: 20),
+        if (post.locationDescription != null) const Text(
+          "Location",
+          style: TextStyle(
+            fontFamily: Fonts.airbndcereal,
+            fontSize: 20,
+            color: CustomColors.black1,
+            fontWeight: FontWeight.w500
+          ),
+        ),
+        const SizedBox(height: 15),
+        if (post.locationDescription != null) Text(
+          post.description!,
           style: const TextStyle(
             fontFamily: Fonts.airbndcereal,
             fontSize: 16
@@ -268,7 +308,12 @@ class PostInfo extends StatelessWidget {
 class ClaimBottomBar extends StatelessWidget {
   const ClaimBottomBar({
     super.key,
+    required this.onPressed,
+    required this.post
   });
+
+  final VoidCallback onPressed;
+  final Post post;
 
   @override
   Widget build(BuildContext context) {
@@ -293,7 +338,7 @@ class ClaimBottomBar extends StatelessWidget {
       child: SizedBox(
         width: double.maxFinite,
         child: ElevatedButton(
-          onPressed: (){}, 
+          onPressed: onPressed, 
           style: ElevatedButton.styleFrom(
             backgroundColor: CustomColors.primaryBlue,
             padding: const EdgeInsets.symmetric(vertical: 18),
@@ -317,9 +362,9 @@ class ClaimBottomBar extends StatelessWidget {
                 ),
               ),
               const Spacer(flex: 3),
-              const Text(
-                "Claim",
-                style: TextStyle(
+              Text(
+                post.type == PostType.found ? "Claim" : "Found",
+                style: const TextStyle(
                   fontFamily: Fonts.airbndcereal,
                   color: Colors.white,
                   fontWeight: FontWeight.bold,

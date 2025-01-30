@@ -61,7 +61,7 @@ class Auth {
 
   static Future<bool> refreshIdToken(BuildContext context) async {
     final response = await http.get(
-      Uri.parse("$route/oauth/refresh"),
+      Uri.parse("$route/refresh-id-token"),
       headers: {
         "Content-Type" : "application/json",
         "Authorization": "Bearer $refreshToken"
