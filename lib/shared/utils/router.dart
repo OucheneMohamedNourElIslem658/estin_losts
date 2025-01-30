@@ -1,4 +1,5 @@
 import 'package:estin_losts/features/auth/screens/auth.dart';
+import 'package:estin_losts/features/posts/screens/add_post.dart';
 import 'package:estin_losts/features/posts/screens/posts.dart';
 import 'package:estin_losts/features/posts/screens/user_claims.dart';
 import 'package:estin_losts/features/posts/screens/user_founds.dart';
@@ -38,5 +39,11 @@ final router = GoRouter(
         return const UserFoundsScreen();
       },
     ),
+    GoRoute(
+      path: "/add-post",
+      builder: (context, state) {
+        return const AddPostScreen();
+      },
+    )
   ]
 );

@@ -1,5 +1,9 @@
 import 'dart:math';
 
+import 'package:flutter/material.dart';
+
+enum SnackBarType {success, error , ideal}
+
 class Utils {
   static String getRandomImageURL(){
     final randomIndex = Random().nextInt(100);
@@ -85,5 +89,33 @@ class Utils {
     final period = hour < 12 ? 'AM' : 'PM';
     final hour12 = hour % 12 == 0 ? 12 : hour % 12;
     return '$hour12:$minute $period';
+  }
+
+  static void showSnackBar(BuildContext context, String message, {
+    SnackBarType type = SnackBarType.ideal 
+  }) {
+    switch (type) {
+      case SnackBarType.success:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: Colors.green,
+          ),
+        );
+        break;
+      
+      case SnackBarType.error:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(message),
+            backgroundColor: Colors.red,
+          ),
+        );
+        break;
+      default:
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(message)),
+        );
+    }
   }
 }

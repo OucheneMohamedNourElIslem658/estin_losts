@@ -7,10 +7,12 @@ class CustomFilterShip extends StatelessWidget {
     super.key,
     required this.label,
     this.isSelected = true,
+    required this.onTap
   });
 
   final String label;
   final bool isSelected;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -28,7 +30,7 @@ class CustomFilterShip extends StatelessWidget {
           fontWeight: FontWeight.w300
         ),
       ),
-      onSelected: (value) {},
+      onSelected: (_) => onTap(),
       selected: isSelected,
       selectedColor: CustomColors.primaryBlue,
       backgroundColor: Colors.white,

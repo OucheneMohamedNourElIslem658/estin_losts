@@ -183,11 +183,18 @@ class FiltersBottomSheet extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 10),
-              const Row(
+              Row(
                 children: [
-                  CustomFilterShip(label: "Lost"),
-                  SizedBox(width: 10),
-                  CustomFilterShip(label: "Found", isSelected: false)
+                  CustomFilterShip(
+                    label: "Lost", 
+                    onTap: () {}
+                  ),
+                  const SizedBox(width: 10),
+                  CustomFilterShip(
+                    label: "Found", 
+                    isSelected: false,
+                    onTap: () {},
+                  )
                 ],
               ),
               const SizedBox(height: 20),

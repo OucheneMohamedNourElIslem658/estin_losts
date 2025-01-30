@@ -172,7 +172,6 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 30),
               const CustomTabBar(liteMode: true),
-              const SizedBox(height: 20),
               const Expanded(
                 child: TabBarView(
                   physics: NeverScrollableScrollPhysics(),

@@ -5,6 +5,7 @@ import 'package:estin_losts/shared/models/post.dart';
 import 'package:estin_losts/shared/widgets/custom_tab_bar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
+import 'package:go_router/go_router.dart';
 
 import '../widgets/posts_list.dart';
 
@@ -64,7 +65,7 @@ class PostsScreen extends StatelessWidget {
         ),
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: (){},
+        onPressed: () => context.push("/add-post"),
         backgroundColor: CustomColors.primaryBlue,
         foregroundColor: Colors.white,
         icon: const Icon(Icons.add_rounded),

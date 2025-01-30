@@ -16,6 +16,7 @@ class CustomDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Drawer(
+      backgroundColor: Colors.white,
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -1,7 +1,9 @@
 // ignore_for_file: use_build_context_synchronously
 
 import 'dart:convert';
+import 'dart:io';
 
+import 'package:estin_losts/services/auth.dart';
 import 'package:estin_losts/shared/constents/backend.dart';
 import 'package:estin_losts/shared/models/post.dart';
 import 'package:flutter/material.dart';
@@ -75,8 +77,7 @@ class Posts {
       }
     );
 
-    try {
-      switch (reponse.statusCode) {
+    switch (reponse.statusCode) {
       case 200:
         final bodyJson = json.decode(reponse.body);
 
@@ -98,12 +99,60 @@ class Posts {
 
       default:
         final bodyJson = json.decode(reponse.body);
-        print(bodyJson);
         throw Exception(bodyJson["message"]);
     }
-    } catch (e) {
-      print(e.toString());
-      rethrow;
+  }
+
+  static Future<void> addPost(BuildContext context, {
+    required String title,
+    required PostType type,
+    String? description,
+    String? locationDescription,
+    List<File>? images,
+  }) async {
+    final uri = Uri.parse("$host$_route/");
+
+    final request = http.MultipartRequest(
+      "POST",
+      uri,
+    );
+
+    // add headers
+    request.headers.addAll({
+      "Content-Type": "multipart/form-data",
+      "Authorization": "Bearer ${Auth.idToken}"
+    });
+
+    request.fields["title"] = title;
+    request.fields["type"] = type.toString().split('.').last;
+    request.fields["description"] = description ?? "";
+    request.fields["location_description"] = locationDescription ?? "";
+
+    images = images ?? [];
+
+     for (var image in images) {
+      var fileStream = http.ByteStream(image.openRead());
+      var length = await image.length();
+
+      var multipartFile = http.MultipartFile(
+        'images',
+        fileStream,
+        length,
+        filename: image.path.split('/').last,
+      );
+
+      request.files.add(multipartFile);
+    }
+
+    final streamedResponse = await request.send();
+    final response = await streamedResponse.stream.bytesToString();
+
+    switch (streamedResponse.statusCode) {
+      case 201:
+        return;
+      default:
+        final bodyJson = json.decode(response);
+        throw Exception(bodyJson["message"]);
     }
   }
 }
