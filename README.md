@@ -15,10 +15,41 @@ Estin Losts is a community-driven platform where users can report lost and found
 
 ## Getting Started
 
-1. **Download the App**: Available on both iOS and Android.
-2. **Create an Account**: Sign up with your email or social media accounts.
-3. **Report Items**: Start reporting lost or found items immediately.
-4. **Search and Connect**: Use the search feature to find your lost items or help others find theirs.
+To get started with the Estin Losts app, follow these steps:
+
+### Prerequisites
+
+Make sure you have Flutter installed on your machine. You can download it from the [official Flutter website](https://flutter.dev/docs/get-started/install).
+
+### Installation
+
+1. **Clone the repository:**
+    ```sh
+    git clone https://github.com/yourusername/estin_losts.git
+    cd estin_losts
+    ```
+
+2. **Install dependencies:**
+    ```sh
+    flutter pub get
+    ```
+
+3. **Run the app:**
+    ```sh
+    flutter run
+    ```
+
+### Building for Release
+
+To build the app for release, use the following command:
+```sh
+flutter build apk --release
+```
+
+This will generate an APK file in the `build/app/outputs/flutter-apk/` directory.
+
+For more detailed instructions, refer to the [Flutter documentation](https://flutter.dev/docs).
+
 
 ## Community Guidelines
 
