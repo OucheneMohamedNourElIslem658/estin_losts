@@ -29,18 +29,6 @@ To run the Estin Losts project, you need to have Docker installed on your machin
     cd estin_losts
     ```
 
-2. **Set Up Environment Variables:**
-    Create a `.env` file in the root directory and add the necessary environment variables for PostgreSQL and MinIO.
-
-    Example `.env` file:
-    ```env
-    POSTGRES_USER=your_postgres_user
-    POSTGRES_PASSWORD=your_postgres_password
-    POSTGRES_DB=estin_losts_db
-    MINIO_ACCESS_KEY=your_minio_access_key
-    MINIO_SECRET_KEY=your_minio_secret_key
-    ```
-
 3. **Start Docker Containers:**
     Use Docker Compose to start the PostgreSQL and MinIO instances.
     ```sh
