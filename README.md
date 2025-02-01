@@ -43,4 +43,4 @@ To run the Estin Losts project, you need to have Docker installed on your machin
     ```
 
 5. **Access the Application:**
-    Open your browser and navigate to `http://localhost:8080` to access the Estin Losts platform.
+    Open your browser and navigate to `http://localhost:8000` to access the Estin Losts platform.
